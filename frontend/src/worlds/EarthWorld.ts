@@ -392,19 +392,19 @@ export class EarthWorld {
     this.alienBody.position.y = 0.2;
 
     const alienMat = new BABYLON.StandardMaterial('alienBodyMat', this.scene);
-    alienMat.diffuseColor = new BABYLON.Color3(0.1, 0.1, 0.12);
-    alienMat.specularColor = new BABYLON.Color3(0.4, 0.1, 0.15);
+    alienMat.diffuseColor = new BABYLON.Color3(0.08, 0.15, 0.12);
+    alienMat.specularColor = new BABYLON.Color3(0.1, 0.5, 0.25);
     alienMat.roughness = 0.3;
     this.alienBody.material = alienMat;
 
-    // 2. Crimson central optic eye
+    // 2. Emerald central optic eye
     this.alienEye = BABYLON.MeshBuilder.CreateSphere('alienEye', { diameter: 0.6 }, this.scene);
     this.alienEye.parent = this.alienRoot;
     this.alienEye.position = new BABYLON.Vector3(0, 0.2, 0.7);
 
     const eyeMat = new BABYLON.StandardMaterial('alienEyeMat', this.scene);
-    eyeMat.diffuseColor = new BABYLON.Color3(1.0, 0.05, 0.1);
-    eyeMat.emissiveColor = new BABYLON.Color3(1.0, 0.08, 0.15);
+    eyeMat.diffuseColor = new BABYLON.Color3(0.05, 0.95, 0.4);
+    eyeMat.emissiveColor = new BABYLON.Color3(0.1, 1.0, 0.5);
     this.alienEye.material = eyeMat;
 
     // 3. Orbiting alien levitation rings
@@ -417,20 +417,20 @@ export class EarthWorld {
     ringB.rotation.z = -Math.PI / 5;
 
     const ringMat = new BABYLON.StandardMaterial('alienRingMat', this.scene);
-    ringMat.diffuseColor = new BABYLON.Color3(0.5, 0.1, 0.15);
-    ringMat.emissiveColor = new BABYLON.Color3(0.4, 0.05, 0.08);
+    ringMat.diffuseColor = new BABYLON.Color3(0.1, 0.6, 0.3);
+    ringMat.emissiveColor = new BABYLON.Color3(0.05, 0.7, 0.35);
     ringA.material = ringMat;
     ringB.material = ringMat;
     this.alienRings = [ringA, ringB];
 
-    // 4. Point light attached to Alien
+    // 4. Point light attached to Alien (Vibrant Emerald Green)
     this.alienLight = new BABYLON.PointLight('alienGlow', new BABYLON.Vector3(0, 0.5, 0), this.scene);
     this.alienLight.parent = this.alienRoot;
-    this.alienLight.diffuse = new BABYLON.Color3(1.0, 0.1, 0.2);
+    this.alienLight.diffuse = new BABYLON.Color3(0.05, 1.0, 0.4);
     this.alienLight.intensity = 1.4;
     this.alienLight.range = 8;
 
-    // 5. Overhead 3D billboard nameplate: "ALIEN AI"
+    // 5. Overhead 3D billboard nameplate: "ALIEN AI" (Green)
     this.alienNameplate = BABYLON.MeshBuilder.CreatePlane('alienNameplate', { width: 3.2, height: 0.8 }, this.scene);
     this.alienNameplate.parent = this.alienRoot;
     this.alienNameplate.position.y = 1.8;
@@ -438,7 +438,7 @@ export class EarthWorld {
 
     const tex = new BABYLON.DynamicTexture('alienNameplateTex', { width: 512, height: 128 }, this.scene, false);
     tex.hasAlpha = true;
-    tex.drawText('ALIEN AI', null, 80, 'bold 44px monospace', '#ff2244', '#110000cc', true);
+    tex.drawText('ALIEN AI', null, 80, 'bold 44px monospace', '#00ff88', '#002614cc', true);
 
     const nameMat = new BABYLON.StandardMaterial('alienNameMat', this.scene);
     nameMat.diffuseTexture = tex;
@@ -515,8 +515,8 @@ export class EarthWorld {
         this.alienLight.diffuse = new BABYLON.Color3(1.0, 0.7, 0.1);
         this.alienLight.intensity = flash;
       } else {
-        // Standard ominous crimson glow
-        this.alienLight.diffuse = new BABYLON.Color3(1.0, 0.1, 0.2);
+        // Standard vibrant emerald green glow
+        this.alienLight.diffuse = new BABYLON.Color3(0.05, 0.95, 0.4);
         this.alienLight.intensity = 1.4;
       }
     }
@@ -559,14 +559,11 @@ export class EarthWorld {
         } else {
           core.glowLight.intensity = 1.0 + Math.sin(core.pulseTimer * 3) * 0.3;
         }
-      } else {
-        // Collected: extinguished core
-        core.glowLight.intensity = 0.1;
       }
     });
 
-    // 3. Render Extraction Beam when state is EXTRACTING
-    if (alienData.state === 'EXTRACTING' && alienData.targetCoreId) {
+    // 3. Render Alien AI laser extraction beam if actively extracting
+    if (alienData.state === 'EXTRACTING' && alienData.targetCoreId && !isEMP && !isOvercharge) {
       const targetCore = this.earthCores.find((c) => c.id === alienData.targetCoreId);
       if (targetCore && !targetCore.collected) {
         targetCore.extracting = true;
@@ -601,7 +598,7 @@ export class EarthWorld {
       { points, updatable: true },
       this.scene
     );
-    this.extractionBeam.color = new BABYLON.Color3(1.0, 0.15, 0.25);
+    this.extractionBeam.color = new BABYLON.Color3(0.05, 0.95, 0.4);
   }
 
   private clearExtractionBeam(): void {

@@ -99,30 +99,35 @@ export class MainMenu {
 
   public render(): void {
     this.container.innerHTML = `
-      <div class="menu-light-overlay absolute inset-0 z-20 flex flex-col items-center justify-center p-4 bg-slate-100 text-slate-800 overflow-y-auto">
+      <div class="menu-light-overlay absolute inset-0 z-20 flex flex-col items-center justify-center p-6 bg-[#f4f8fb] text-[#10212b] overflow-y-auto">
         
-        <!-- Header title & tagline -->
-        <div class="text-center space-y-2 mb-8 max-w-lg w-full">
-          <div class="text-xs font-mono font-bold text-sky-600 tracking-[0.3em] uppercase">
-            TACTICAL MULTIPLAYER SURVIVAL
-          </div>
-          <h1 class="text-4xl sm:text-5xl font-black font-display tracking-widest text-slate-900 drop-shadow-sm">
-            EARTH // SHUKA
-          </h1>
-          <p class="text-xs sm:text-sm font-semibold text-slate-500 tracking-[0.2em] uppercase">
-            Two Worlds. One Race for Survival.
-          </p>
-        </div>
-
-        <!-- Main Card Container -->
-        <div class="menu-card-container bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-xl space-y-6 transition-all duration-200 mx-auto">
+        <div class="menu-launcher-container w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-10 items-center z-10">
           
-          ${this.renderCardContent()}
+          <!-- LEFT BRANDING -->
+          <div class="menu-left-brand space-y-3 text-left">
+            <div class="menu-title-label font-mono text-xs font-bold text-[#08a9c7] tracking-[0.3em] uppercase">
+              TACTICAL MULTIPLAYER SURVIVAL
+            </div>
+            <h1 class="menu-title-main text-5xl lg:text-6xl font-black font-display tracking-wider text-[#10212b]">
+              EARTH // SHUKA
+            </h1>
+            <p class="menu-tagline font-mono text-xs lg:text-sm font-bold text-[#5d707a] tracking-[0.25em] uppercase">
+              TWO WORLDS. ONE RACE FOR SURVIVAL.
+            </p>
+          </div>
+
+          <!-- RIGHT / CENTER LAUNCHER CARD -->
+          <div class="menu-card-container game-card bg-white border border-[#d7e3e8] rounded-2xl p-6 sm:p-8 w-full shadow-md space-y-6">
+            ${this.renderCardContent()}
+          </div>
 
         </div>
 
-        <!-- Connection Indicator at footer -->
-        <div id="main-menu-connection-slot" class="mt-6"></div>
+        <!-- FOOTER INFO BAR -->
+        <div class="menu-footer-bar absolute bottom-4 left-8 right-8 flex justify-between items-center font-mono text-xs text-[#8a9aa3]">
+          <div id="main-menu-connection-slot"></div>
+          <div>VERSION 1.0.0</div>
+        </div>
 
       </div>
     `;
@@ -134,32 +139,31 @@ export class MainMenu {
     if (this.viewMode === 'MAIN') {
       return `
         <!-- Main Hub Buttons -->
-        <div class="flex flex-col gap-3">
-          <button id="btn-menu-create" class="w-full py-4 px-6 bg-sky-600 hover:bg-sky-700 text-white font-bold font-display text-sm tracking-wider uppercase rounded-xl transition-all duration-150 shadow-md active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer">
-            <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+        <div class="flex flex-col gap-3.5">
+          <button id="btn-menu-create" class="btn-primary w-full py-4 px-6 bg-[#08a9c7] hover:bg-[#0789a3] text-[#10212b] hover:text-white font-bold font-display text-sm tracking-widest uppercase rounded-xl shadow-sm transition-all duration-200 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer">
             CREATE MISSION
           </button>
 
-          <button id="btn-menu-join" class="w-full py-3.5 px-6 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold font-display text-sm tracking-wider uppercase rounded-xl border border-slate-300 transition-all duration-150 shadow-sm active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer">
+          <button id="btn-menu-join" class="btn-secondary w-full py-3.5 px-6 bg-white hover:bg-[#edf5f8] text-[#10212b] font-bold font-display text-xs tracking-widest uppercase rounded-xl border border-[#d7e3e8] shadow-sm transition-all duration-200 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer">
             JOIN MISSION
           </button>
 
-          <button id="btn-menu-demo" class="w-full py-3.5 px-6 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-black font-display text-xs tracking-widest uppercase rounded-xl shadow-md transition-all duration-150 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer">
-            <span>⚡</span> [ QUICK DEMO ]
+          <button id="btn-menu-demo" class="btn-secondary w-full py-3.5 px-6 bg-[#edf5f8] hover:bg-[#dff7fb] text-[#0789a3] font-bold font-display text-xs tracking-widest uppercase rounded-xl border border-[#d7e3e8] shadow-sm transition-all duration-200 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer">
+            QUICK DEMO
           </button>
 
-          <div class="grid grid-cols-2 gap-2.5 pt-1">
-            <button id="btn-menu-htp" class="py-2.5 px-3 bg-white hover:bg-slate-50 text-slate-700 font-bold font-display text-xs tracking-wider uppercase rounded-xl border border-slate-200 transition-all duration-150 shadow-sm cursor-pointer truncate">
+          <div class="grid grid-cols-2 gap-3 pt-1">
+            <button id="btn-menu-htp" class="btn-secondary py-3 px-3 bg-white hover:bg-[#edf5f8] text-[#5d707a] hover:text-[#10212b] font-bold font-display text-xs tracking-wider uppercase rounded-xl border border-[#d7e3e8] transition-all duration-150 shadow-sm cursor-pointer truncate">
               HOW TO PLAY
             </button>
 
-            <button id="btn-menu-settings" class="py-2.5 px-3 bg-white hover:bg-slate-50 text-slate-700 font-bold font-display text-xs tracking-wider uppercase rounded-xl border border-slate-200 transition-all duration-150 shadow-sm cursor-pointer truncate">
+            <button id="btn-menu-settings" class="btn-secondary py-3 px-3 bg-white hover:bg-[#edf5f8] text-[#5d707a] hover:text-[#10212b] font-bold font-display text-xs tracking-wider uppercase rounded-xl border border-[#d7e3e8] transition-all duration-150 shadow-sm cursor-pointer truncate">
               SETTINGS
             </button>
           </div>
 
-          <button id="btn-menu-info" class="w-full py-2 px-4 bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold font-mono text-[11px] tracking-wider uppercase rounded-xl border border-slate-200 transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer">
-            <span>ℹ️</span> GAME INFO & TECH STACK
+          <button id="btn-menu-info" class="w-full py-2.5 px-4 bg-transparent hover:bg-[#edf5f8] text-[#5d707a] hover:text-[#10212b] font-bold font-mono text-[11px] tracking-wider uppercase rounded-xl border border-transparent hover:border-[#d7e3e8] transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer">
+            GAME INFO & TECH STACK
           </button>
         </div>
       `;
@@ -168,17 +172,17 @@ export class MainMenu {
     if (this.viewMode === 'CREATE') {
       return `
         <!-- Create Mission View -->
-        <div class="space-y-4">
-          <div class="border-b border-slate-100 pb-3 flex justify-between items-center">
+        <div class="space-y-5">
+          <div class="border-b border-[#d7e3e8] pb-3 flex justify-between items-center">
             <div>
-              <div class="text-[11px] font-mono font-bold text-sky-600 tracking-wider">NEW MULTIPLAYER SESSION</div>
-              <h2 class="text-xl font-bold font-display text-slate-900">CREATE MISSION</h2>
+              <div class="text-[11px] font-mono font-bold text-[#08a9c7] tracking-wider uppercase">NEW MULTIPLAYER SESSION</div>
+              <h2 class="text-xl font-bold font-display text-[#10212b] uppercase">CREATE MISSION</h2>
             </div>
-            <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-[#08a9c7]"></span>
           </div>
 
           <div class="space-y-2">
-            <label for="create-player-name" class="block text-xs font-mono font-bold text-slate-700 uppercase">
+            <label for="create-player-name" class="block text-xs font-mono font-bold text-[#5d707a] uppercase tracking-wider">
               PLAYER NAME
             </label>
             <input 
@@ -187,48 +191,48 @@ export class MainMenu {
               maxlength="16"
               placeholder="Enter your name" 
               value="${this.escapeHtml(this.storedName)}"
-              class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-mono text-sm focus:outline-none focus:border-sky-500 focus:bg-white transition-colors"
+              class="game-input w-full px-4 py-3 bg-[#edf5f8] border border-[#d7e3e8] rounded-xl text-[#10212b] font-mono text-sm focus:outline-none focus:border-[#08a9c7] focus:bg-white transition-colors"
               autocomplete="off"
             />
           </div>
 
-          <div class="space-y-1">
-            <label class="block text-xs font-mono font-bold text-slate-700 uppercase">
+          <div class="space-y-2">
+            <label class="block text-xs font-mono font-bold text-[#5d707a] uppercase tracking-wider">
               SELECT FACTION & MAP
             </label>
-            <div class="grid grid-cols-2 gap-2 font-mono text-xs">
+            <div class="grid grid-cols-2 gap-3 font-mono text-xs">
               <button 
                 id="btn-role-human" 
                 type="button" 
-                class="py-2 px-2.5 rounded-xl border text-center font-bold transition-all cursor-pointer ${
+                class="py-3 px-3 rounded-xl border text-center font-bold transition-all duration-200 cursor-pointer ${
                   this.storedRole === 'HUMAN' 
-                    ? 'bg-sky-600 border-sky-700 text-white shadow-md' 
-                    : 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
+                    ? 'bg-[#08a9c7] border-[#0789a3] text-[#10212b] shadow-sm' 
+                    : 'bg-[#edf5f8] border-[#d7e3e8] text-[#5d707a] hover:bg-[#dff7fb] hover:text-[#10212b]'
                 }"
               >
-                🛡️ HUMAN<br/><span class="text-[10px] font-normal opacity-90">(Planet Shuka)</span>
+                HUMAN<br/><span class="text-[10px] font-normal opacity-80">(Planet Shuka)</span>
               </button>
               <button 
                 id="btn-role-alien" 
                 type="button" 
-                class="py-2 px-2.5 rounded-xl border text-center font-bold transition-all cursor-pointer ${
+                class="py-3 px-3 rounded-xl border text-center font-bold transition-all duration-200 cursor-pointer ${
                   this.storedRole === 'ALIEN' 
-                    ? 'bg-rose-600 border-rose-700 text-white shadow-md' 
-                    : 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
+                    ? 'bg-[#16a34a] border-[#15803d] text-white shadow-sm' 
+                    : 'bg-[#edf5f8] border-[#d7e3e8] text-[#5d707a] hover:bg-[#edf5f8] hover:text-[#10212b]'
                 }"
               >
-                👾 ALIEN<br/><span class="text-[10px] font-normal opacity-90">(Planet Earth)</span>
+                ALIEN<br/><span class="text-[10px] font-normal opacity-80">(Planet Earth)</span>
               </button>
             </div>
           </div>
 
-          <div class="flex gap-3 pt-2">
-            <button id="btn-form-back" class="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold font-display text-xs uppercase tracking-wider rounded-xl border border-slate-300 transition-colors cursor-pointer">
+          <div class="grid grid-cols-5 gap-3 pt-2">
+            <button id="btn-form-back" class="btn-secondary col-span-2 py-3 bg-white hover:bg-[#edf5f8] text-[#5d707a] font-bold font-display text-xs uppercase tracking-wider rounded-xl border border-[#d7e3e8] transition-colors cursor-pointer text-center">
               BACK
             </button>
             <button 
               id="btn-form-create-submit" 
-              class="flex-2 py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold font-display text-xs uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              class="btn-primary col-span-3 py-3 bg-[#08a9c7] hover:bg-[#0789a3] text-[#10212b] hover:text-white font-bold font-display text-xs uppercase tracking-wider rounded-xl transition-all shadow-sm active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-center"
               ${this.isSubmitting ? 'disabled' : ''}
             >
               ${this.isSubmitting ? 'CREATING...' : 'CREATE MISSION'}
@@ -241,18 +245,18 @@ export class MainMenu {
     if (this.viewMode === 'JOIN') {
       return `
         <!-- Join Mission View -->
-        <div class="space-y-4">
-          <div class="border-b border-slate-100 pb-3 flex justify-between items-center">
+        <div class="space-y-5">
+          <div class="border-b border-[#d7e3e8] pb-3 flex justify-between items-center">
             <div>
-              <div class="text-[11px] font-mono font-bold text-sky-600 tracking-wider">ENTER ACTIVE ROOM</div>
-              <h2 class="text-xl font-bold font-display text-slate-900">JOIN MISSION</h2>
+              <div class="text-[11px] font-mono font-bold text-[#08a9c7] tracking-wider uppercase">ENTER ACTIVE ROOM</div>
+              <h2 class="text-xl font-bold font-display text-[#10212b] uppercase">JOIN MISSION</h2>
             </div>
-            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-[#2563eb]"></span>
           </div>
 
           <div class="space-y-3">
             <div class="space-y-1">
-              <label for="join-player-name" class="block text-xs font-mono font-bold text-slate-700 uppercase">
+              <label for="join-player-name" class="block text-xs font-mono font-bold text-[#5d707a] uppercase tracking-wider">
                 PLAYER NAME
               </label>
               <input 
@@ -261,13 +265,13 @@ export class MainMenu {
                 maxlength="16"
                 placeholder="Enter your name" 
                 value="${this.escapeHtml(this.storedName)}"
-                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-mono text-sm focus:outline-none focus:border-sky-500 focus:bg-white transition-colors"
+                class="game-input w-full px-4 py-2.5 bg-[#edf5f8] border border-[#d7e3e8] rounded-xl text-[#10212b] font-mono text-sm focus:outline-none focus:border-[#08a9c7] focus:bg-white transition-colors"
                 autocomplete="off"
               />
             </div>
 
             <div class="space-y-1">
-              <label for="join-room-code" class="block text-xs font-mono font-bold text-slate-700 uppercase">
+              <label for="join-room-code" class="block text-xs font-mono font-bold text-[#5d707a] uppercase tracking-wider">
                 ROOM CODE
               </label>
               <input 
@@ -276,19 +280,19 @@ export class MainMenu {
                 maxlength="6"
                 placeholder="ABC123" 
                 value="${this.escapeHtml(this.roomCodeInputVal)}"
-                class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sky-700 font-mono font-bold tracking-widest text-lg uppercase focus:outline-none focus:border-sky-500 focus:bg-white transition-colors"
+                class="game-input w-full px-4 py-3 bg-[#edf5f8] border border-[#d7e3e8] rounded-xl text-[#08a9c7] font-mono font-bold tracking-widest text-lg uppercase focus:outline-none focus:border-[#08a9c7] focus:bg-white transition-colors text-center"
                 autocomplete="off"
               />
             </div>
           </div>
 
-          <div class="flex gap-3 pt-2">
-            <button id="btn-form-back" class="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold font-display text-xs uppercase tracking-wider rounded-xl border border-slate-300 transition-colors cursor-pointer">
+          <div class="grid grid-cols-5 gap-3 pt-2">
+            <button id="btn-form-back" class="btn-secondary col-span-2 py-3 bg-white hover:bg-[#edf5f8] text-[#5d707a] font-bold font-display text-xs uppercase tracking-wider rounded-xl border border-[#d7e3e8] transition-colors cursor-pointer text-center">
               BACK
             </button>
             <button 
               id="btn-form-join-submit" 
-              class="flex-2 py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold font-display text-xs uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              class="btn-primary col-span-3 py-3 bg-[#08a9c7] hover:bg-[#0789a3] text-[#10212b] hover:text-white font-bold font-display text-xs uppercase tracking-wider rounded-xl transition-all shadow-sm active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-center"
               ${this.isSubmitting ? 'disabled' : ''}
             >
               ${this.isSubmitting ? 'JOINING...' : 'JOIN MISSION'}

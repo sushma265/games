@@ -435,41 +435,33 @@ export class LobbyUI {
         const isPlayerHost = p.isHost;
         const isPlayerReady = p.ready;
 
-        const dotClass = isPlayerHost
-          ? 'host'
-          : isPlayerReady
-          ? 'ready'
-          : 'not-ready';
-
-        const statusBadge = isPlayerHost
-          ? `<span class="badge-host">HOST</span>`
-          : isPlayerReady
-          ? `<span class="badge-ready">READY</span>`
-          : `<span class="badge-not-ready">NOT READY</span>`;
-
-        const youBadge = isLocal ? `<span class="badge-you">(YOU)</span>` : '';
+        const dotClass = isPlayerReady ? 'ready' : 'not-ready';
+        const statusText = isPlayerReady ? '● READY' : '○ NOT READY';
+        const hostBadge = isPlayerHost ? '<span class="badge-host">HOST</span>' : '';
+        const youBadge = isLocal ? '<span class="badge-you">(YOU)</span>' : '';
 
         slotsHtml += `
-          <div class="lobby-player-row ${isLocal ? 'is-local' : ''}">
-            <div class="lobby-player-info">
-              <span class="player-status-dot ${dotClass}"></span>
-              <span class="player-name-text">${this.escapeHtml(p.name)}</span>
-              ${youBadge}
+          <div class="lobby-player-card ${isPlayerReady ? 'is-ready' : ''}">
+            <div class="lobby-player-card-header">
+              <span class="lobby-player-name">${this.escapeHtml(p.name)} ${youBadge}</span>
+              ${hostBadge}
             </div>
-            <div class="player-badges">
-              ${statusBadge}
+            <div class="lobby-player-status ${isPlayerReady ? 'ready' : ''}">
+              <span class="status-dot ${dotClass}"></span>
+              <span>${statusText}</span>
             </div>
           </div>
         `;
       } else {
         // Empty slot
         slotsHtml += `
-          <div class="lobby-player-row empty-slot">
-            <div class="lobby-player-info">
-              <span class="player-status-dot not-ready opacity-40"></span>
-              <span class="text-sm font-mono text-slate-500">Waiting for operative...</span>
+          <div class="lobby-player-card opacity-60 border-dashed">
+            <div class="lobby-player-card-header">
+              <span class="lobby-player-name text-xs text-[#8a9aa3]">SLOT ${i + 1}</span>
             </div>
-            <span class="text-xs font-mono text-slate-600">SLOT ${i + 1}</span>
+            <div class="lobby-player-status">
+              <span>Waiting for operative...</span>
+            </div>
           </div>
         `;
       }
@@ -480,26 +472,26 @@ export class LobbyUI {
     if (isHost) {
       if (canStart) {
         hostStartBtnHtml = `
-          <button id="btn-start-mission" class="sci-fi-btn w-full py-3.5 text-base glow-cyan">
+          <button id="btn-start-mission" class="btn-primary w-full py-3.5 text-sm">
             START MISSION
           </button>
         `;
       } else if (playerCount < 2) {
         hostStartBtnHtml = `
-          <button id="btn-start-mission" disabled class="sci-fi-btn w-full py-3 text-xs opacity-50 cursor-not-allowed">
+          <button id="btn-start-mission" disabled class="btn-secondary w-full py-3 text-xs opacity-50 cursor-not-allowed">
             WAITING FOR PLAYERS (2-4 REQUIRED)
           </button>
         `;
       } else {
         hostStartBtnHtml = `
-          <button id="btn-start-mission" disabled class="sci-fi-btn w-full py-3 text-xs opacity-50 cursor-not-allowed">
+          <button id="btn-start-mission" disabled class="btn-secondary w-full py-3 text-xs opacity-50 cursor-not-allowed">
             WAITING FOR ALL OPERATIVES TO BE READY
           </button>
         `;
       }
     } else {
       hostStartBtnHtml = `
-        <div class="w-full py-3 px-4 text-center text-xs font-mono tracking-widest text-slate-400 bg-slate-900/50 border border-slate-700/50">
+        <div class="w-full py-3 px-4 text-center text-xs font-mono tracking-widest text-[#5d707a] bg-[#edf5f8] border border-[#d7e3e8] rounded-xl">
           WAITING FOR HOST TO LAUNCH MISSION
         </div>
       `;
@@ -507,22 +499,22 @@ export class LobbyUI {
 
     // Ready toggle button for players
     const isCurrentReady = localPlayer?.ready ?? false;
-    const readyBtnLabel = isCurrentReady ? 'NOT READY' : 'READY';
+    const readyBtnLabel = isCurrentReady ? 'CANCEL READY' : 'SET READY';
     const readyBtnClass = isCurrentReady
-      ? 'sci-fi-btn sci-fi-btn-amber'
-      : 'sci-fi-btn';
+      ? 'btn-secondary'
+      : 'btn-primary';
 
     this.root.innerHTML = `
       <div class="lobby-overlay">
-        <div class="lobby-room-view">
-          <!-- Room Title -->
-          <div class="flex items-center justify-between border-b border-cyan-500/30 pb-3">
+        <div class="lobby-room-view game-card">
+          <!-- Room Header -->
+          <div class="flex items-center justify-between border-b border-[#d7e3e8] pb-3">
             <div>
-              <div class="text-xs font-mono text-cyan-400 tracking-widest">EARTH // SHUKA</div>
-              <h2 class="text-lg font-bold font-display text-white tracking-wide">MISSION ROOM</h2>
+              <div class="lobby-subtitle font-mono">MISSION LOBBY</div>
+              <h2 class="lobby-title text-2xl font-bold">LOBBY</h2>
             </div>
-            <div class="text-xs font-mono text-slate-400 px-3 py-1 bg-slate-900/80 border border-slate-700">
-              STATUS: <span class="text-cyan-400 font-bold">${room.status}</span>
+            <div class="text-xs font-mono text-[#5d707a] px-3 py-1 bg-[#edf5f8] border border-[#d7e3e8] rounded-lg">
+              STATUS: <span class="text-[#08a9c7] font-bold">${room.status}</span>
             </div>
           </div>
 
@@ -530,42 +522,34 @@ export class LobbyUI {
 
           <!-- Mission Code Display Box -->
           <div class="lobby-code-box">
-            <div class="text-xs font-mono text-slate-400 tracking-widest uppercase">
-              SHARE THIS MISSION CODE
+            <div>
+              <div class="text-xs font-mono text-[#5d707a] tracking-widest uppercase">ROOM CODE</div>
+              <div class="lobby-code-val">${room.code}</div>
             </div>
-            <div class="lobby-code-val">${room.code}</div>
             <button id="btn-copy-code" class="copy-btn">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
               <span>${this.copyStatusText}</span>
             </button>
           </div>
 
           <!-- Operatives List -->
           <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-mono text-slate-400 tracking-wider">OPERATIVES LIST</span>
-              <span class="text-xs font-mono text-cyan-400 font-bold">${playerCount} / ${maxPlayers} PLAYERS</span>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-mono text-[#5d707a] tracking-wider font-bold">OPERATIVES (${playerCount} / ${maxPlayers})</span>
             </div>
-            <div class="lobby-player-list">
+            <div class="lobby-player-grid">
               ${slotsHtml}
             </div>
           </div>
 
           <!-- Controls Button Group -->
           <div class="flex flex-col gap-3 pt-2">
-            <!-- Ready Button (Always available for all connected players) -->
-            <button id="btn-toggle-ready" class="${readyBtnClass} w-full py-2.5 text-sm">
+            <button id="btn-toggle-ready" class="${readyBtnClass} w-full py-3 text-xs font-bold">
               ${readyBtnLabel}
             </button>
 
-            <!-- Host Start / Waiting Banner -->
             ${hostStartBtnHtml}
 
-            <!-- Leave Room Button -->
-            <button id="btn-leave-room" class="sci-fi-btn sci-fi-btn-danger w-full py-2 text-xs">
+            <button id="btn-leave-room" class="btn-danger w-full py-2.5 text-xs">
               LEAVE ROOM
             </button>
           </div>

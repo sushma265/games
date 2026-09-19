@@ -123,174 +123,129 @@ export class SpecialistAllocationUI {
     const finalDuration = (baseDuration / (1 + this.shukaExtraction * SPECIALIST_CONFIG.shukaExtractionBonusPerSpecialist)).toFixed(2);
 
     this.container.innerHTML = `
-      <div class="specialist-overlay fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overflow-y-auto">
-        <div class="specialist-card bg-white border border-slate-300 rounded-xl p-6 sm:p-8 max-w-[540px] w-full shadow-2xl space-y-6 text-slate-800 transition-all duration-200">
+      <div class="specialist-overlay fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#f4f8fb]/95 overflow-y-auto">
+        <div class="specialist-card game-card bg-white border border-[#d7e3e8] rounded-2xl p-6 sm:p-8 max-w-[540px] w-full shadow-md space-y-6 text-[#10212b]">
           
           <!-- Header -->
-          <div class="text-center space-y-1 pb-2 border-b border-slate-200">
-            <div class="font-bold tracking-widest text-slate-900 text-lg uppercase flex items-center justify-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-cyan-500 animate-pulse"></span>
-              EARTH // SHUKA
+          <div class="text-center space-y-1 pb-3 border-b border-[#d7e3e8]">
+            <div class="text-xs font-mono font-bold text-[#08a9c7] tracking-[0.25em] uppercase">
+              STRATEGY PANEL
             </div>
-            <div class="text-xs font-bold text-cyan-600 tracking-[0.25em] uppercase">
-              MISSION SPECIALISTS
+            <h2 class="font-display font-bold tracking-wider text-[#10212b] text-2xl uppercase">
+              SPECIALIST ALLOCATION
+            </h2>
+            <div class="text-xs font-mono font-bold text-[#5d707a] tracking-wider pt-1 uppercase">
+              ${SPECIALIST_CONFIG.totalSpecialists} SPECIALISTS AVAILABLE
             </div>
-            <p class="text-xs text-slate-500 max-w-sm mx-auto pt-1">
-              Allocate your team's operational resources between Earth containment defense and Shuka core extraction.
-            </p>
-          </div>
-
-          <!-- Total Counter Badge -->
-          <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5">
-            <span class="text-xs font-semibold uppercase tracking-wider text-slate-600">Total Resource Pool</span>
-            <span class="font-mono font-bold text-sm text-cyan-700 bg-cyan-50 border border-cyan-200 px-2.5 py-0.5 rounded">
-              ${SPECIALIST_CONFIG.totalSpecialists} SPECIALISTS
-            </span>
           </div>
 
           <!-- Error Notification if any -->
           ${this.errorMessage ? `
-            <div class="bg-rose-50 border border-rose-300 text-rose-700 px-3 py-2 rounded text-xs font-mono font-semibold flex items-center justify-between">
-              <span>⚠ ${this.escapeHtml(this.errorMessage)}</span>
+            <div class="bg-rose-50 border border-rose-300 text-rose-700 px-3 py-2 rounded-xl text-xs font-mono font-semibold flex items-center justify-between">
+              <span>${this.escapeHtml(this.errorMessage)}</span>
               <button id="btn-dismiss-err" class="text-rose-500 hover:text-rose-800 font-bold ml-2">×</button>
             </div>
           ` : ''}
 
           <!-- Confirmation Banner -->
           ${this.confirmationStatus ? `
-            <div class="bg-emerald-50 border border-emerald-300 text-emerald-800 px-4 py-3 rounded-lg text-xs font-bold tracking-wider text-center animate-pulse flex items-center justify-center gap-2">
-              <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <div class="bg-[#dff7fb] border border-[#08a9c7] text-[#0789a3] px-4 py-3 rounded-xl text-xs font-bold tracking-wider text-center flex items-center justify-center gap-2">
               ${this.confirmationStatus}
             </div>
           ` : ''}
 
-          <!-- Role Allocation Sections -->
+          <!-- Visual Balance Bar -->
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-xs font-mono font-bold uppercase text-[#5d707a]">
+              <span>EARTH DEFENSE (${this.earthDefense})</span>
+              <span>SHUKA EXTRACTION (${this.shukaExtraction})</span>
+            </div>
+            <div class="w-full h-3 bg-[#edf5f8] rounded-full overflow-hidden flex border border-[#d7e3e8]">
+              <div class="h-full bg-[#2563eb] transition-all duration-200" style="width: ${(this.earthDefense / 5) * 100}%"></div>
+              <div class="h-full bg-[#08a9c7] transition-all duration-200" style="width: ${(this.shukaExtraction / 5) * 100}%"></div>
+            </div>
+          </div>
+
+          <!-- Role Allocation Rows -->
           <div class="space-y-4">
             
             <!-- 1. EARTH DEFENSE -->
-            <div class="role-row bg-slate-50 hover:bg-slate-100/70 border border-slate-200 rounded-lg p-4 transition-colors">
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div class="space-y-1 max-w-[280px]">
-                  <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-rose-500"></span>
-                    <span class="font-bold text-slate-900 text-sm tracking-wider uppercase">EARTH DEFENSE</span>
-                  </div>
-                  <p class="text-[11px] text-slate-500 leading-snug">
-                    Strengthens containment protocols and disruption abilities against alien activity on Earth.
-                  </p>
-                  <div class="text-[11px] font-mono text-rose-600 font-semibold pt-0.5">
-                    +${earthBonusPct}% Disruption Readiness (+5%/specialist)
-                  </div>
-                </div>
+            <div class="role-row bg-[#edf5f8] border border-[#d7e3e8] rounded-xl p-4 flex items-center justify-between">
+              <div class="space-y-1">
+                <span class="font-bold text-[#10212b] text-sm tracking-wider uppercase">EARTH DEFENSE</span>
+                <p class="text-xs text-[#5d707a]">Disruption readiness vs Alien operative on Earth.</p>
+                <div class="text-xs font-mono text-[#2563eb] font-bold">+${earthBonusPct}% Disruption Readiness</div>
+              </div>
 
-                <!-- Controls / View -->
-                <div class="flex items-center self-end sm:self-center gap-2">
-                  ${this.isHost || this.isSolo ? `
-                    <div class="flex items-center gap-2">
-                      <button 
-                        id="btn-earth-minus" 
-                        class="w-11 h-11 flex items-center justify-center rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 font-bold text-lg shadow-sm active:scale-95 disabled:opacity-35 disabled:cursor-not-allowed transition-all cursor-pointer"
-                        ${this.earthDefense <= 0 || this.isLocked ? 'disabled' : ''}
-                        aria-label="Decrease Earth Defense Specialists"
-                      >-</button>
-                      <div class="w-10 text-center font-mono font-bold text-xl text-slate-900">
-                        ${this.earthDefense}
-                      </div>
-                      <button 
-                        id="btn-earth-plus" 
-                        class="w-11 h-11 flex items-center justify-center rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 font-bold text-lg shadow-sm active:scale-95 disabled:opacity-35 disabled:cursor-not-allowed transition-all cursor-pointer"
-                        ${this.earthDefense >= 5 || this.shukaExtraction <= 0 || this.isLocked ? 'disabled' : ''}
-                        aria-label="Increase Earth Defense Specialists"
-                      >+</button>
-                    </div>
-                  ` : `
-                    <div class="bg-white border border-slate-200 px-3.5 py-2 rounded-lg font-mono font-bold text-slate-800 text-sm shadow-sm">
-                      ${this.earthDefense} ${this.earthDefense === 1 ? 'Specialist' : 'Specialists'}
-                    </div>
-                  `}
-                </div>
+              <!-- Controls -->
+              <div class="flex items-center gap-3">
+                ${this.isHost || this.isSolo ? `
+                  <button 
+                    id="btn-earth-minus" 
+                    class="btn-secondary w-9 h-9 flex items-center justify-center rounded-lg text-lg font-bold"
+                    ${this.earthDefense <= 0 || this.isLocked ? 'disabled' : ''}
+                  >-</button>
+                  <span class="font-display font-bold text-2xl text-[#10212b] w-6 text-center">${this.earthDefense}</span>
+                  <button 
+                    id="btn-earth-plus" 
+                    class="btn-secondary w-9 h-9 flex items-center justify-center rounded-lg text-lg font-bold"
+                    ${this.earthDefense >= 5 || this.shukaExtraction <= 0 || this.isLocked ? 'disabled' : ''}
+                  >+</button>
+                ` : `
+                  <span class="font-display font-bold text-2xl text-[#10212b]">${this.earthDefense}</span>
+                `}
               </div>
             </div>
 
             <!-- 2. SHUKA EXTRACTION -->
-            <div class="role-row bg-slate-50 hover:bg-slate-100/70 border border-slate-200 rounded-lg p-4 transition-colors">
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div class="space-y-1 max-w-[280px]">
-                  <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-cyan-500"></span>
-                    <span class="font-bold text-slate-900 text-sm tracking-wider uppercase">SHUKA EXTRACTION</span>
-                  </div>
-                  <p class="text-[11px] text-slate-500 leading-snug">
-                    Improves human extraction speed and beam stabilization efficiency on Shuka.
-                  </p>
-                  <div class="text-[11px] font-mono text-cyan-600 font-semibold pt-0.5">
-                    +${shukaBonusPct}% Extraction Speed (~${finalDuration}s duration)
-                  </div>
-                </div>
+            <div class="role-row bg-[#edf5f8] border border-[#d7e3e8] rounded-xl p-4 flex items-center justify-between">
+              <div class="space-y-1">
+                <span class="font-bold text-[#10212b] text-sm tracking-wider uppercase">SHUKA EXTRACTION</span>
+                <p class="text-xs text-[#5d707a]">Accelerates core extraction speed on Shuka.</p>
+                <div class="text-xs font-mono text-[#08a9c7] font-bold">+${shukaBonusPct}% Speed (~${finalDuration}s)</div>
+              </div>
 
-                <!-- Controls / View -->
-                <div class="flex items-center self-end sm:self-center gap-2">
-                  ${this.isHost || this.isSolo ? `
-                    <div class="flex items-center gap-2">
-                      <button 
-                        id="btn-shuka-minus" 
-                        class="w-11 h-11 flex items-center justify-center rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 font-bold text-lg shadow-sm active:scale-95 disabled:opacity-35 disabled:cursor-not-allowed transition-all cursor-pointer"
-                        ${this.shukaExtraction <= 0 || this.isLocked ? 'disabled' : ''}
-                        aria-label="Decrease Shuka Extraction Specialists"
-                      >-</button>
-                      <div class="w-10 text-center font-mono font-bold text-xl text-slate-900">
-                        ${this.shukaExtraction}
-                      </div>
-                      <button 
-                        id="btn-shuka-plus" 
-                        class="w-11 h-11 flex items-center justify-center rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 font-bold text-lg shadow-sm active:scale-95 disabled:opacity-35 disabled:cursor-not-allowed transition-all cursor-pointer"
-                        ${this.shukaExtraction >= 5 || this.earthDefense <= 0 || this.isLocked ? 'disabled' : ''}
-                        aria-label="Increase Shuka Extraction Specialists"
-                      >+</button>
-                    </div>
-                  ` : `
-                    <div class="bg-white border border-slate-200 px-3.5 py-2 rounded-lg font-mono font-bold text-slate-800 text-sm shadow-sm">
-                      ${this.shukaExtraction} ${this.shukaExtraction === 1 ? 'Specialist' : 'Specialists'}
-                    </div>
-                  `}
-                </div>
+              <!-- Controls -->
+              <div class="flex items-center gap-3">
+                ${this.isHost || this.isSolo ? `
+                  <button 
+                    id="btn-shuka-minus" 
+                    class="btn-secondary w-9 h-9 flex items-center justify-center rounded-lg text-lg font-bold"
+                    ${this.shukaExtraction <= 0 || this.isLocked ? 'disabled' : ''}
+                  >-</button>
+                  <span class="font-display font-bold text-2xl text-[#10212b] w-6 text-center">${this.shukaExtraction}</span>
+                  <button 
+                    id="btn-shuka-plus" 
+                    class="btn-secondary w-9 h-9 flex items-center justify-center rounded-lg text-lg font-bold"
+                    ${this.shukaExtraction >= 5 || this.earthDefense <= 0 || this.isLocked ? 'disabled' : ''}
+                  >+</button>
+                ` : `
+                  <span class="font-display font-bold text-2xl text-[#10212b]">${this.shukaExtraction}</span>
+                `}
               </div>
             </div>
 
           </div>
 
-          <!-- Total Allocated Status Bar -->
-          <div class="flex items-center justify-between pt-2 border-t border-slate-200 text-xs font-semibold">
-            <span class="text-slate-600 uppercase tracking-wider">Total Allocated:</span>
-            <span class="font-mono font-bold text-sm ${isValidTotal ? 'text-emerald-600' : 'text-rose-600'}">
-              ${totalAllocated} / ${SPECIALIST_CONFIG.totalSpecialists}
-            </span>
-          </div>
-
-          <!-- Action Area (Host confirm / Non-host waiting) -->
+          <!-- Action Area -->
           <div class="pt-2">
             ${this.isHost || this.isSolo ? `
               <button 
                 id="btn-confirm-allocation"
-                class="w-full py-3.5 px-6 rounded-lg font-bold text-sm tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-md ${
-                  isValidTotal && !this.isLocked 
-                    ? 'bg-cyan-600 hover:bg-cyan-700 text-white active:scale-[0.99]' 
-                    : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                }"
+                class="btn-primary w-full py-3.5 text-xs font-bold"
                 ${!isValidTotal || this.isLocked ? 'disabled' : ''}
               >
                 ${this.isLocked ? 'SPECIALISTS LOCKED' : 'CONFIRM ALLOCATION'}
               </button>
             ` : `
-              <div class="bg-slate-100 border border-slate-200 rounded-lg p-3 text-center text-xs text-slate-500 font-semibold flex items-center justify-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-                <span>Waiting for mission host to confirm specialist allocation...</span>
+              <div class="bg-[#edf5f8] border border-[#d7e3e8] rounded-xl p-3 text-center text-xs text-[#5d707a] font-semibold">
+                Waiting for mission host to confirm specialist allocation...
               </div>
             `}
           </div>
 
           <!-- Role Explanatory Footer -->
-          <div class="text-[11px] text-center text-slate-400 font-mono">
+          <div class="text-[11px] text-center text-[#5d707a] font-mono font-bold uppercase">
             ${this.isSolo ? 'SOLO RECONNAISSANCE MODE' : (this.isHost ? 'TEAM LEADER // HOST CONTROL' : 'OPERATIVE STATUS // TEAM ALLOCATION')}
           </div>
 

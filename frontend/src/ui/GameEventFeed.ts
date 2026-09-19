@@ -42,9 +42,9 @@ export class GameEventFeed {
     }
 
     this.container.innerHTML = `
-      <div class="game-event-feed-box space-y-1 text-[11px] font-mono select-none">
-        <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
-          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+      <div class="game-event-feed-box space-y-1.5 text-xs font-mono select-none">
+        <div class="text-[10px] font-bold text-[#5d707a] uppercase tracking-widest mb-1 flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#08a9c7]"></span>
           MISSION FEED
         </div>
         ${this.items.map((item) => this.renderItem(item)).join('')}
@@ -53,24 +53,19 @@ export class GameEventFeed {
   }
 
   private renderItem(item: GameEventItem): string {
-    let badgeColor = 'border-slate-700 bg-slate-900/80 text-slate-200';
-    let icon = '•';
+    let badgeColor = 'border-[#d7e3e8] bg-white text-[#10212b]';
 
     if (item.type === 'success') {
-      badgeColor = 'border-cyan-500/50 bg-cyan-950/80 text-cyan-300';
-      icon = '✓';
+      badgeColor = 'border-[#08a9c7] bg-[#dff7fb] text-[#0789a3]';
     } else if (item.type === 'alien' || item.type === 'error') {
-      badgeColor = 'border-rose-500/50 bg-rose-950/80 text-rose-300';
-      icon = '⚡';
+      badgeColor = 'border-[#dc3f3f] bg-rose-50 text-[#dc3f3f]';
     } else if (item.type === 'warning') {
-      badgeColor = 'border-amber-500/50 bg-amber-950/80 text-amber-300';
-      icon = '⚠';
+      badgeColor = 'border-[#e59b17] bg-amber-50 text-[#e59b17]';
     }
 
     return `
-      <div class="event-feed-item flex items-center gap-2 px-2.5 py-1 rounded-md border backdrop-blur-md transition-all animate-fadeIn ${badgeColor}">
-        <span class="font-bold">${icon}</span>
-        <span class="truncate">${item.message}</span>
+      <div class="event-feed-item flex items-center gap-2 px-3 py-1.5 rounded-lg border shadow-sm transition-all ${badgeColor}">
+        <span class="truncate font-bold">${item.message}</span>
       </div>
     `;
   }

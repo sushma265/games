@@ -3,7 +3,7 @@ import http from 'http';
 import path from 'path';
 import fs from 'fs';
 import { Server as SocketIOServer } from 'socket.io';
-import { RoomManager } from './roomManager';
+import { RoomManager } from './roomManager.js';
 
 async function startServer() {
   const app = express();

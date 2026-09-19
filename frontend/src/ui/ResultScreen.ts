@@ -40,27 +40,15 @@ export class ResultScreen {
     const isHumanWin = stats.winner === 'HUMAN' || stats.isWin === true;
     const isDraw = stats.winner === 'DRAW';
 
-    let winnerTitle = 'HUMAN VICTORY';
-    let winnerSubtitle = 'HUMANITY SECURED PLANET SHUKA';
-    let winnerDesc = 'Humanity survives. The alien invasion forces on Earth have collapsed as their power grid was starved.';
-    let bannerColorClass = 'text-sky-600';
-    let borderColorClass = 'border-sky-500';
-    let badgeBgClass = 'bg-sky-50 text-sky-800 border-sky-200';
+    let winnerTitle = 'MISSION COMPLETE';
+    let winnerSubtitle = 'SHUKA WINS';
 
     if (isDraw) {
-      winnerTitle = 'MATCH DRAW';
-      winnerSubtitle = 'TIME EXPIRED — EQUAL SCORE';
-      winnerDesc = 'Match time has expired with equal core collection. Neither side achieved total orbital control.';
-      bannerColorClass = 'text-amber-600';
-      borderColorClass = 'border-amber-500';
-      badgeBgClass = 'bg-amber-50 text-amber-800 border-amber-200';
+      winnerTitle = 'MISSION DRAW';
+      winnerSubtitle = 'EQUAL SCORES';
     } else if (!isHumanWin) {
-      winnerTitle = 'ALIEN VICTORY';
-      winnerSubtitle = 'EARTH CORES DRAINED';
-      winnerDesc = 'The alien extraction is complete. Earth energy reserves have been drained.';
-      bannerColorClass = 'text-rose-600';
-      borderColorClass = 'border-rose-500';
-      badgeBgClass = 'bg-rose-50 text-rose-800 border-rose-200';
+      winnerTitle = 'MISSION FAILED';
+      winnerSubtitle = 'EARTH WINS';
     }
 
     if (isHumanWin) {
@@ -79,63 +67,50 @@ export class ResultScreen {
     }
 
     this.modalRoot.innerHTML = `
-      <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
-        <div class="bg-white border-2 ${borderColorClass} rounded-2xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6 text-slate-800 text-center my-auto">
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#f4f8fb]/95 overflow-y-auto">
+        <div class="game-card bg-white border border-[#d7e3e8] rounded-2xl p-8 max-w-lg w-full shadow-md space-y-6 text-[#10212b] text-center my-auto">
           
           <!-- Outcome Header -->
           <div class="space-y-1">
-            <div class="text-xs font-mono font-bold tracking-[0.25em] uppercase ${bannerColorClass}">
-              MATCH RESULTS
-            </div>
-            <h1 class="text-3xl sm:text-4xl font-black font-display tracking-widest text-slate-900">
+            <div class="text-xs font-mono font-bold tracking-[0.25em] uppercase text-[#08a9c7]">
               ${winnerTitle}
-            </h1>
-            <p class="text-xs font-bold font-display tracking-widest uppercase ${bannerColorClass}">
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-black font-display tracking-widest text-[#10212b] uppercase">
               ${winnerSubtitle}
-            </p>
+            </h1>
           </div>
 
-          <p class="text-xs text-slate-600 font-body leading-relaxed max-w-md mx-auto">
-            ${winnerDesc}
-          </p>
-
-          <!-- Reason Badge if provided -->
-          ${stats.reason ? `
-            <div class="inline-block px-3 py-1 rounded-full border text-xs font-mono font-semibold ${badgeBgClass}">
-              REASON: ${this.escapeHtml(stats.reason.replace(/_/g, ' '))}
+          <!-- Score Display Grid -->
+          <div class="grid grid-cols-2 gap-4 py-4 border-y border-[#d7e3e8]">
+            <div class="space-y-1">
+              <div class="text-4xl font-black font-display text-[#08a9c7]">${stats.shukaCoresCollected}</div>
+              <div class="text-xs font-mono font-bold text-[#5d707a] tracking-widest uppercase">SHUKA CORES</div>
             </div>
-          ` : ''}
-
-          <!-- Stats Grid -->
-          <div class="grid grid-cols-2 gap-3 w-full bg-slate-50 p-4 border border-slate-200 rounded-xl text-left font-mono text-xs">
-            <div>
-              <span class="text-slate-500 block text-[10px] uppercase">HUMAN SHUKA CORES</span>
-              <div class="text-sky-700 font-bold text-base">${stats.shukaCoresCollected} / 5</div>
+            <div class="space-y-1">
+              <div class="text-4xl font-black font-display text-[#16a34a]">${stats.earthCoresLost}</div>
+              <div class="text-xs font-mono font-bold text-[#5d707a] tracking-widest uppercase">EARTH CORES</div>
             </div>
+          </div>
 
+          <!-- Match Details -->
+          <div class="grid grid-cols-2 gap-3 text-xs font-mono text-left bg-[#edf5f8] p-4 rounded-xl border border-[#d7e3e8]">
             <div>
-              <span class="text-slate-500 block text-[10px] uppercase">ALIEN EARTH CORES</span>
-              <div class="text-rose-700 font-bold text-base">${stats.earthCoresLost} / 5</div>
+              <span class="text-[#5d707a] block text-[10px] uppercase font-bold">MATCH DURATION</span>
+              <span class="font-bold text-[#10212b] text-sm">${formattedDuration}</span>
             </div>
-
             <div>
-              <span class="text-slate-500 block text-[10px] uppercase">MATCH DURATION</span>
-              <div class="text-slate-900 font-bold text-base">${formattedDuration}</div>
-            </div>
-
-            <div>
-              <span class="text-slate-500 block text-[10px] uppercase">TACTICAL ABILITIES</span>
-              <div class="text-amber-700 font-bold text-base">${stats.abilitiesUsed || 0} DEPLOYED</div>
+              <span class="text-[#5d707a] block text-[10px] uppercase font-bold">ABILITIES DEPLOYED</span>
+              <span class="font-bold text-[#10212b] text-sm">${stats.abilitiesUsed || 0}</span>
             </div>
           </div>
 
           <!-- Actions -->
           <div class="flex flex-col sm:flex-row gap-3 pt-2">
-            <button id="btn-result-rematch" class="flex-1 py-3.5 bg-sky-600 hover:bg-sky-700 text-white font-bold font-display text-xs uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-[0.99] cursor-pointer">
-              ${stats.isDemoMode ? '[ PLAY AGAIN ]' : 'RETURN TO LOBBY (REMATCH)'}
+            <button id="btn-result-rematch" class="btn-primary flex-1 py-3.5 text-xs">
+              PLAY AGAIN
             </button>
-            <button id="btn-result-menu" class="flex-1 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold font-display text-xs uppercase tracking-wider rounded-xl border border-slate-300 transition-colors cursor-pointer">
-              ${stats.isDemoMode ? '[ MAIN MENU ]' : 'MAIN MENU'}
+            <button id="btn-result-menu" class="btn-secondary flex-1 py-3.5 text-xs">
+              RETURN TO LOBBY
             </button>
           </div>
 

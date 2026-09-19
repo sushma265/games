@@ -63,11 +63,13 @@ export class NetworkManager {
       return this.socket;
     }
 
-    // Determine server URL: env variable, Vercel frontend fallback to Render backend, or local origin
+    // Determine server URL: env variable, local dev fallback, Vercel fallback to Render backend, or origin
     const envUrl = (import.meta as any).env?.VITE_SERVER_URL || (import.meta as any).env?.VITE_SOCKET_URL;
     const isVercel = typeof window !== 'undefined' && window.location.hostname.includes('vercel.app');
+    const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
     const defaultRenderBackend = 'https://games-1-n3x0.onrender.com';
-    const serverUrl = envUrl || (isVercel ? defaultRenderBackend : window.location.origin);
+    const defaultLocalBackend = typeof window !== 'undefined' ? `http://${window.location.hostname}:3000` : 'http://localhost:3000';
+    const serverUrl = envUrl || (isLocal ? defaultLocalBackend : (isVercel ? defaultRenderBackend : window.location.origin));
 
     console.log(`[NetworkManager] Connecting to Socket.IO server at: ${serverUrl}`);
 

@@ -116,4 +116,11 @@ export class CameraController {
   public getRightVector(): BABYLON.Vector3 {
     return new BABYLON.Vector3(Math.cos(this.yaw), 0, -Math.sin(this.yaw)).normalize();
   }
+
+  public reset(): void {
+    this.yaw = 0;
+    this.pitch = 0.28;
+    this.currentDistance = this.idealDistance;
+    this.trauma = 0;
+  }
 }

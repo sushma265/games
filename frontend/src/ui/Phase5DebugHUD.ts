@@ -34,6 +34,7 @@ function makePercentBar(pct: number, length: number = 14): string {
  *  RECON CAM toggle [V]
  */
 export class Phase5DebugHUD {
+  public isDemoMode: boolean = false;
   private container: HTMLElement;
   private debugPanel: HTMLElement;
   private statusBannerRoot: HTMLElement;
@@ -136,155 +137,64 @@ export class Phase5DebugHUD {
 
   private renderDebugPanel(gm: GameManager): void {
     const formattedTime = gm.getFormattedTime();
-    const roomInfo = gm.multiplayerMode ? `${gm.roomCode}_${gm.isHost}` : 'single';
-    const isDebugAI = !!(window as any).DEBUG_AI;
     const isExtracting = gm.alienAI?.state === 'EXTRACTING';
     const extPct = isExtracting ? Math.floor((gm.alienAI?.extractionProgress || 0) * 100) : 0;
-    const targetName = gm.alienAI?.targetCoreName || '';
-    const empTimer = Math.ceil(gm.alienAI?.empStunTimer || 0);
-    const ovTimer = Math.ceil(gm.alienAI?.overchargeDisruptionTimer || 0);
+    const isLowTime = gm.matchTime > 240; // match time > 4 mins (last 60s)
 
-    const cacheKey = `${gm.state}_${gm.humanCores}_${gm.alienCores}_${formattedTime}_${roomInfo}_${isExtracting}_${extPct}_${targetName}_${empTimer}_${ovTimer}_${isDebugAI}_${gm.isReconCameraActive}`;
-
+    const cacheKey = `${gm.state}_${gm.humanCores}_${gm.alienCores}_${formattedTime}_${isExtracting}_${extPct}_${gm.playerRole}_${gm.isReconCameraActive}`;
     if (this.lastRenderedKey === cacheKey) {
       return;
     }
     this.lastRenderedKey = cacheKey;
 
-    let stateColor = 'text-cyan-400';
-    if (gm.state === GameState.WON) stateColor = 'text-emerald-400';
-    if (gm.state === GameState.LOST) stateColor = 'text-rose-400';
-    if (gm.state === GameState.PAUSED) stateColor = 'text-amber-400';
+    // Render dot indicators ● ● ● ○ ○
+    const renderDots = (count: number, max: number, type: 'human' | 'alien') => {
+      let dots = '';
+      for (let i = 0; i < max; i++) {
+        const filled = i < count ? (type === 'human' ? 'filled-human' : 'filled-alien') : '';
+        dots += `<span class="core-dot ${filled}"></span>`;
+      }
+      return dots;
+    };
+
+    const specialistsCount = gm.specialistAllocation?.shukaExtraction ?? 3;
 
     this.debugPanel.innerHTML = `
-      <div class="bg-slate-950/90 backdrop-blur-md border border-slate-700/80 rounded-xl p-4 text-xs font-mono text-slate-200 w-80 shadow-2xl space-y-3">
-        <div class="border-b border-slate-800 pb-2 flex items-center justify-between">
-          <div class="font-bold text-slate-100 tracking-wider text-sm flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-            EARTH // SHUKA
-          </div>
-          <span class="text-[10px] text-cyan-400 uppercase tracking-widest font-bold">Phase 9 Race</span>
+      <div class="hud-container">
+        <!-- Top-Left: Branding & Mission -->
+        <div class="hud-top-left hud-panel">
+          <div class="hud-brand-title">EARTH // SHUKA</div>
+          <div class="hud-mission-id">MISSION 01 ${gm.roomCode ? `[${gm.roomCode}]` : ''}</div>
         </div>
 
-        <div class="space-y-2.5 text-[12px]">
-          ${gm.multiplayerMode && gm.roomCode ? `
-          <div class="flex items-center justify-between text-[11px] pb-1 border-b border-slate-800/60">
-            <span class="text-slate-400 font-semibold">ROOM CODE:</span>
-            <span class="text-cyan-300 font-bold tracking-widest">${gm.roomCode} ${gm.isHost ? '<span class="text-[9px] text-amber-400 ml-1 border border-amber-500/50 px-1 py-0.5 rounded">HOST</span>' : ''}</span>
+        <!-- Top-Center: Match Timer -->
+        <div class="hud-top-center">
+          <div class="hud-timer-card">
+            <span class="hud-timer-text ${isLowTime ? 'warning' : ''}">${formattedTime}</span>
           </div>
-          ` : ''}
-
-          <!-- Human Progress (Shuka) -->
-          <div class="bg-cyan-950/30 border border-cyan-900/50 p-2 rounded">
-            <div class="flex justify-between items-center text-[10px] tracking-wider uppercase font-semibold text-cyan-400">
-              <span>HUMAN — SHUKA</span>
-              <span class="text-cyan-200 font-bold text-xs">${gm.humanCores} / ${gm.MAX_CORES}</span>
-            </div>
-            <div class="font-mono text-cyan-300 tracking-widest text-sm pt-0.5">
-              ${makeProgressBar(gm.humanCores, gm.MAX_CORES)}
-            </div>
-          </div>
-
-          <!-- Alien Progress (Earth) -->
-          <div class="bg-rose-950/30 border border-rose-900/50 p-2 rounded space-y-1">
-            <div class="flex justify-between items-center text-[10px] tracking-wider uppercase font-semibold text-rose-400">
-              <span>ALIEN — EARTH</span>
-              <span class="text-rose-200 font-bold text-xs">${gm.alienCores} / ${gm.MAX_CORES}</span>
-            </div>
-            <div class="font-mono text-rose-400 tracking-widest text-sm">
-              ${makeProgressBar(gm.alienCores, gm.MAX_CORES)}
-            </div>
-
-            <!-- Target Core & Extraction Bar -->
-            ${gm.alienAI && gm.alienAI.targetCoreName ? `
-              <div class="pt-1 border-t border-rose-950/80 text-[10px]">
-                <div class="flex justify-between text-slate-400">
-                  <span class="font-semibold text-rose-300">TARGET:</span>
-                  <span class="text-slate-200 font-bold truncate max-w-[170px]">${gm.alienAI.targetCoreName}</span>
-                </div>
-                ${gm.alienAI.empStunTimer > 0 ? `
-                  <div class="mt-1 bg-cyan-950/80 p-1.5 rounded border border-cyan-400 text-cyan-300 font-bold animate-pulse text-[10px] flex items-center justify-between">
-                    <span class="flex items-center gap-1">⚡ ALIEN EMP FROZEN</span>
-                    <span>${gm.alienAI.empStunTimer.toFixed(1)}s</span>
-                  </div>
-                ` : gm.alienAI.overchargeDisruptionTimer > 0 ? `
-                  <div class="mt-1 bg-amber-950/80 p-1.5 rounded border border-amber-400 text-amber-300 font-bold animate-pulse text-[10px] flex items-center justify-between">
-                    <span class="flex items-center gap-1">⚡⚡ OVERCHARGE DISRUPTED</span>
-                    <span>${gm.alienAI.overchargeDisruptionTimer.toFixed(1)}s</span>
-                  </div>
-                ` : gm.alienAI.state === 'EXTRACTING' ? `
-                  <div class="mt-1 bg-rose-950/60 p-1.5 rounded border border-rose-800/60">
-                    <div class="flex justify-between text-rose-300 text-[9px] font-bold">
-                      <span>ALIEN EXTRACTION</span>
-                      <span>${Math.floor(gm.alienAI.extractionProgress * 100)}%</span>
-                    </div>
-                    <div class="font-mono text-rose-400 tracking-wider text-[11px]">
-                      ${makePercentBar(gm.alienAI.extractionProgress, 14)}
-                    </div>
-                  </div>
-                ` : ''}
-              </div>
-            ` : ''}
-          </div>
-
-          <!-- Time & State -->
-          <div class="border-t border-slate-800/80 pt-1.5 flex items-center justify-between">
-            <span class="text-slate-400 text-[11px] font-semibold">MATCH TIME:</span>
-            <span class="text-amber-300 font-bold text-sm tracking-wider">${formattedTime}</span>
-          </div>
-
-          <div class="flex items-center justify-between">
-            <span class="text-slate-400 text-[11px] font-semibold">MATCH STATE:</span>
-            <span class="font-bold tracking-widest ${stateColor}">${gm.state}</span>
-          </div>
-
-          <!-- Team Specialists Status (Phase 10) -->
-          <div class="bg-slate-900/60 border border-slate-700/60 p-2 rounded text-[10px] font-mono space-y-1">
-            <div class="flex items-center justify-between text-slate-400 font-bold tracking-wider">
-              <span>SPECIALISTS</span>
-              <span class="text-cyan-400">5 TOTAL</span>
-            </div>
-            <div class="grid grid-cols-2 gap-1.5 pt-0.5">
-              <div class="bg-slate-950/50 border border-rose-500/30 rounded p-1">
-                <div class="text-[8.5px] text-rose-400 font-semibold tracking-wide">EARTH DEFENSE</div>
-                <div class="text-slate-200 font-bold text-xs">${gm.specialistAllocation?.earthDefense ?? 2} <span class="text-[9px] text-rose-300 font-normal">(+${Math.round((gm.specialistAllocation?.earthDefense ?? 2) * 5)}%)</span></div>
-              </div>
-              <div class="bg-slate-950/50 border border-cyan-500/30 rounded p-1">
-                <div class="text-[8.5px] text-cyan-400 font-semibold tracking-wide">SHUKA EXTRACT</div>
-                <div class="text-slate-200 font-bold text-xs">${gm.specialistAllocation?.shukaExtraction ?? 3} <span class="text-[9px] text-cyan-300 font-normal">(+${Math.round((gm.specialistAllocation?.shukaExtraction ?? 3) * 5)}%)</span></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Development AI Debug Mode (Section 23) -->
-          ${isDebugAI && gm.alienAI ? `
-            <div class="bg-purple-950/40 border border-purple-500/50 p-2 rounded text-[10px] font-mono text-purple-200 space-y-0.5">
-              <div class="text-[9px] text-purple-400 font-bold tracking-wider uppercase">[DEBUG AI: ACTIVE]</div>
-              <div>AI STATE: <span class="text-purple-100 font-bold">${gm.alienAI.state}</span></div>
-              <div>TARGET: <span class="text-purple-100">${gm.alienAI.targetCoreName || 'NONE'}</span></div>
-              <div>DISTANCE: <span class="text-purple-100">${gm.alienAI.distanceToTarget.toFixed(1)}m</span></div>
-              <div>PROGRESS: <span class="text-purple-100">${gm.alienCores} / 5</span></div>
-            </div>
-          ` : ''}
         </div>
 
-        <div class="border-t border-slate-800/80 pt-2.5 flex items-center justify-between text-[10px] text-slate-400">
-          <div class="flex gap-1.5">
-            <button id="p5-hud-reset-btn" class="px-2 py-1 bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-500/50 rounded text-cyan-300 hover:text-cyan-100 transition-colors font-bold active:scale-95 cursor-pointer">
-              RESET
-            </button>
-            <button id="p5-hud-cam-btn" class="px-2 py-1 ${gm.isReconCameraActive ? 'bg-amber-950/90 border-amber-400 text-amber-200' : 'bg-slate-800/80 border-slate-600 text-slate-200'} hover:bg-slate-700 border rounded transition-colors font-bold active:scale-95 cursor-pointer">
-              ${gm.isReconCameraActive ? 'SHUKA CAM [V]' : 'RECON CAM [V]'}
-            </button>
+        <!-- Top-Right: Score Cards & Core Progress Dots -->
+        <div class="hud-top-right">
+          <!-- Shuka Cores Card -->
+          <div class="hud-panel hud-score-card">
+            <span class="hud-score-label">SHUKA</span>
+            <span class="hud-score-num human">${gm.humanCores}</span>
+            <div class="hud-dots">${renderDots(gm.humanCores, gm.MAX_CORES, 'human')}</div>
           </div>
-          <div class="flex gap-1.5">
-            <button id="p5-hud-debug-ai-btn" class="px-2 py-1 ${isDebugAI ? 'bg-purple-900/90 text-purple-200 border-purple-400' : 'bg-slate-800/80 text-slate-400 border-slate-600'} hover:bg-slate-700 border rounded transition-colors font-bold active:scale-95 cursor-pointer">
-              DEBUG [F2]
-            </button>
-            <button id="p5-hud-pause-btn" class="px-2 py-1 bg-slate-800/80 hover:bg-slate-700 border border-slate-600 rounded text-slate-200 transition-colors font-bold active:scale-95 cursor-pointer">
-              ${gm.state === GameState.PAUSED ? 'RESUME [P]' : 'PAUSE [P]'}
-            </button>
+
+          <!-- Earth Cores Card -->
+          <div class="hud-panel hud-score-card">
+            <span class="hud-score-label">EARTH</span>
+            <span class="hud-score-num alien">${gm.alienCores}</span>
+            <div class="hud-dots">${renderDots(gm.alienCores, gm.MAX_CORES, 'alien')}</div>
           </div>
+        </div>
+
+        <!-- Bottom-Left: Player Stats -->
+        <div class="hud-bottom-left hud-panel">
+          <div class="hud-player-name">${this.escapeHtml(gm.networkMgr?.localPlayerName || 'OPERATIVE')}</div>
+          <div class="hud-specialist-info">SPECIALISTS: ${specialistsCount}</div>
         </div>
       </div>
     `;
@@ -522,83 +432,37 @@ export class Phase5DebugHUD {
     }
     this.lastAbilityKey = cacheKey;
 
-    const isAlienExtracting = gm.alienAI?.state === 'EXTRACTING';
-
-    const renderCard = (ability: typeof a1, accentColor: string, borderClass: string, bgClass: string, isContextValid: boolean) => {
+    const renderCard = (ability: typeof a1) => {
       const isReady = ability.currentCooldown <= 0;
       const isCoolingDown = !isReady;
       const cdSec = Math.ceil(ability.currentCooldown);
-      const activeSec = ability.activeRemaining.toFixed(1);
 
       return `
         <button
           data-ability-id="${ability.id}"
-          class="relative w-64 p-3 rounded-xl border backdrop-blur-md transition-all text-left group cursor-pointer active:scale-98
-            ${ability.isActive
-              ? `${borderClass} ${bgClass} shadow-[0_0_20px_rgba(34,211,238,0.4)]`
-              : isReady
-                ? isContextValid
-                  ? `border-slate-700/80 bg-slate-950/85 hover:border-${accentColor}-400/80 hover:bg-slate-900/90 shadow-lg`
-                  : `border-slate-800/80 bg-slate-950/70 hover:border-slate-600`
-                : 'border-slate-800/60 bg-slate-950/60 opacity-75'
-            }"
+          class="ability-card ${ability.isActive ? 'border-[#08a9c7]' : ''}"
         >
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="px-2 py-0.5 rounded font-mono font-bold text-xs tracking-wider
-                ${isReady
-                  ? `bg-${accentColor}-500/20 text-${accentColor}-300 border border-${accentColor}-400/50`
-                  : 'bg-slate-800 text-slate-400 border border-slate-700'
-                }">
-                ${ability.hotkey}
-              </span>
-              <span class="font-mono font-bold text-xs tracking-wide text-slate-100">
-                ${ability.name}
-              </span>
-            </div>
-
-            <!-- Status pill -->
-            <div>
-              ${ability.isActive ? `
-                <span class="text-[10px] font-mono font-bold text-cyan-300 animate-pulse bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-400">
-                  ACTIVE ${activeSec}s
-                </span>
-              ` : isCoolingDown ? `
-                <span class="text-[10px] font-mono font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
-                  ${cdSec}s
-                </span>
-              ` : `
-                <span class="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/40">
-                  READY
-                </span>
-              `}
-            </div>
+          <div class="ability-header">
+            <span class="ability-key">${ability.hotkey}</span>
+            <span class="ability-name">${ability.name}</span>
           </div>
-
-          <!-- Description & Cooldown Bar -->
-          <div class="mt-2 text-[10px] font-mono text-slate-400 flex items-center justify-between">
-            <span>${ability.description}</span>
-            <span class="text-[9px] text-slate-400 font-semibold">${ability.cooldownMax}s CD</span>
+          <div class="text-[10px] font-mono text-[#5d707a] flex justify-between">
+            <span>${isReady ? 'READY' : `${cdSec}s`}</span>
+            <span>${ability.cooldownMax}s</span>
           </div>
-
-          <!-- Cooldown Progress Bar -->
-          ${isCoolingDown ? `
-            <div class="mt-1.5 w-full bg-slate-800/80 h-1 rounded-full overflow-hidden">
-              <div class="bg-${accentColor}-400 h-full transition-all duration-100" style="width: ${((ability.cooldownMax - ability.currentCooldown) / ability.cooldownMax) * 100}%"></div>
-            </div>
-          ` : ''}
+          <div class="ability-cooldown-bar">
+            <div class="ability-cooldown-fill" style="width: ${((ability.cooldownMax - (isCoolingDown ? ability.currentCooldown : 0)) / ability.cooldownMax) * 100}%"></div>
+          </div>
         </button>
       `;
     };
 
     this.abilityBarRoot.innerHTML = `
-      <div class="text-[10px] font-mono text-slate-400 tracking-wider uppercase font-semibold pr-1 flex items-center gap-1.5">
-        <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
-        OPERATIVE ABILITIES [E / Q / R]
+      <div class="hud-bottom-right">
+        ${renderCard(a1)}
+        ${renderCard(a2)}
+        ${renderCard(a3)}
       </div>
-      ${renderCard(a1, 'cyan', 'border-cyan-400', 'bg-cyan-950/80', isAlienExtracting)}
-      ${renderCard(a2, 'amber', 'border-amber-400', 'bg-amber-950/80', isAlienExtracting)}
-      ${renderCard(a3, 'emerald', 'border-emerald-400', 'bg-emerald-950/80', true)}
     `;
 
     // Attach click triggers
@@ -664,5 +528,11 @@ export class Phase5DebugHUD {
         ${fb.message}
       </div>
     `;
+  }
+
+  private escapeHtml(str: string): string {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
   }
 }
