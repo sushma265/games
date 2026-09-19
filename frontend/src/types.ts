@@ -1,6 +1,4 @@
-/**
- * Shared Types for EARTH // SHUKA - Specialist Allocation & Game Systems
- */
+export type PlayerRole = 'HUMAN' | 'ALIEN';
 
 export interface SpecialistAllocation {
   total: number; // Always 5

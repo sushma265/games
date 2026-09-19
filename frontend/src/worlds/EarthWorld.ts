@@ -84,14 +84,23 @@ export class EarthWorld {
    * Contained warm industrial lighting for the ruined Earth sector
    */
   private buildLighting(): void {
+    const earthHemiLight = new BABYLON.HemisphericLight(
+      'earthHemiLight',
+      new BABYLON.Vector3(0, 1, 0),
+      this.scene
+    );
+    earthHemiLight.intensity = 1.35;
+    earthHemiLight.diffuse = new BABYLON.Color3(0.95, 0.98, 1.0);
+    earthHemiLight.groundColor = new BABYLON.Color3(0.45, 0.45, 0.5);
+
     this.earthSunLight = new BABYLON.DirectionalLight(
       'earthSunLight',
       new BABYLON.Vector3(-0.4, -1, 0.3),
       this.scene
     );
-    this.earthSunLight.diffuse = new BABYLON.Color3(1.0, 0.62, 0.35);
-    this.earthSunLight.specular = new BABYLON.Color3(0.5, 0.3, 0.15);
-    this.earthSunLight.intensity = 0.85;
+    this.earthSunLight.diffuse = new BABYLON.Color3(1.0, 0.88, 0.75);
+    this.earthSunLight.specular = new BABYLON.Color3(0.5, 0.4, 0.3);
+    this.earthSunLight.intensity = 1.45;
   }
 
   /**
@@ -107,9 +116,9 @@ export class EarthWorld {
     ground.position = EarthWorld.EARTH_OFFSET.clone();
 
     const groundMat = new BABYLON.StandardMaterial('earthGroundMat', this.scene);
-    groundMat.diffuseColor = new BABYLON.Color3(0.12, 0.12, 0.14);
-    groundMat.specularColor = new BABYLON.Color3(0.18, 0.14, 0.1);
-    groundMat.roughness = 0.9;
+    groundMat.diffuseColor = new BABYLON.Color3(0.52, 0.55, 0.60);
+    groundMat.specularColor = new BABYLON.Color3(0.3, 0.3, 0.35);
+    groundMat.roughness = 0.6;
     ground.material = groundMat;
     ground.checkCollisions = true;
 

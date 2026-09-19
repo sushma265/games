@@ -34,22 +34,22 @@ export class ShukaWorld {
   }
 
   private setupAtmosphere(): void {
-    // Cinematic Purple Twilight Fog
+    // Bright Crisp Daylight Atmosphere
     this.scene.fogMode = BABYLON.Scene.FOGMODE_EXP2;
-    this.scene.fogColor = new BABYLON.Color3(0.05, 0.025, 0.12);
-    this.scene.fogDensity = 0.014;
+    this.scene.fogColor = new BABYLON.Color3(0.7, 0.82, 0.94);
+    this.scene.fogDensity = 0.005;
 
-    this.scene.clearColor = new BABYLON.Color4(0.04, 0.02, 0.1, 1.0);
+    this.scene.clearColor = new BABYLON.Color4(0.62, 0.78, 0.92, 1.0);
 
-    // Deep ambient & directional alien moonlight
+    // High-visibility bright ambient & directional lighting
     const hemiLight = new BABYLON.HemisphericLight('shukaHemi', new BABYLON.Vector3(0, 1, 0), this.scene);
-    hemiLight.intensity = 0.45;
-    hemiLight.groundColor = new BABYLON.Color3(0.08, 0.02, 0.15); // Deep purple underglow
-    hemiLight.diffuse = new BABYLON.Color3(0.3, 0.5, 0.7); // Cyan/blue moonfill
+    hemiLight.intensity = 1.35;
+    hemiLight.groundColor = new BABYLON.Color3(0.4, 0.45, 0.55); // Crisp ambient underglow
+    hemiLight.diffuse = new BABYLON.Color3(0.85, 0.9, 1.0); // Bright sky fill
 
     const dirLight = new BABYLON.DirectionalLight('shukaMoon', new BABYLON.Vector3(-0.6, -1, 0.4), this.scene);
-    dirLight.intensity = 0.7;
-    dirLight.diffuse = new BABYLON.Color3(0.6, 0.35, 0.9); // Violet moonbeam
+    dirLight.intensity = 1.45;
+    dirLight.diffuse = new BABYLON.Color3(1.0, 0.95, 0.85); // Warm sunbeam
   }
 
   private buildTerrain(): void {
@@ -79,15 +79,15 @@ export class ShukaWorld {
     }
 
     const groundMat = new BABYLON.StandardMaterial('shukaGroundMat', this.scene);
-    groundMat.diffuseColor = new BABYLON.Color3(0.08, 0.04, 0.14);
-    groundMat.specularColor = new BABYLON.Color3(0.15, 0.1, 0.25);
+    groundMat.diffuseColor = new BABYLON.Color3(0.45, 0.48, 0.58);
+    groundMat.specularColor = new BABYLON.Color3(0.25, 0.25, 0.35);
     groundMat.specularPower = 16;
     ground.material = groundMat;
     this.groundMesh = ground;
 
     // Outer crater mountain ring to enclose the arena
     const ringMat = new BABYLON.StandardMaterial('craterRingMat', this.scene);
-    ringMat.diffuseColor = new BABYLON.Color3(0.05, 0.02, 0.09);
+    ringMat.diffuseColor = new BABYLON.Color3(0.4, 0.42, 0.52);
 
     const outerRing = BABYLON.MeshBuilder.CreateTorus('craterRim', {
       diameter: 180,
@@ -100,7 +100,7 @@ export class ShukaWorld {
 
   private buildAncientRuins(): void {
     const ruinMat = new BABYLON.StandardMaterial('shukaRuinMat', this.scene);
-    ruinMat.diffuseColor = new BABYLON.Color3(0.12, 0.08, 0.18);
+    ruinMat.diffuseColor = new BABYLON.Color3(0.55, 0.58, 0.68);
     ruinMat.specularColor = new BABYLON.Color3(0.2, 0.1, 0.3);
 
     const glyphMat = new BABYLON.StandardMaterial('shukaGlyphMat', this.scene);

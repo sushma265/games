@@ -664,7 +664,20 @@ export class GameManager {
     });
   }
 
+  public playerRole: 'HUMAN' | 'ALIEN' = 'HUMAN';
+
   public startGame(allocation?: SpecialistAllocation): void {
+    try {
+      const storedRole = localStorage.getItem('earth_shuka_player_role');
+      if (storedRole === 'ALIEN') {
+        this.playerRole = 'ALIEN';
+      } else {
+        this.playerRole = 'HUMAN';
+      }
+    } catch {
+      this.playerRole = 'HUMAN';
+    }
+
     if (allocation) {
       this.applySpecialistAllocation(allocation);
     } else {
@@ -674,6 +687,19 @@ export class GameManager {
     this.state = GameState.PLAYING;
     this.alienAI.reset();
     this.earthWorld.reset();
+
+    // Map & Faction Spawning logic
+    if (this.playerRole === 'ALIEN') {
+      // Spawn player on Earth Map (EarthWorld.EARTH_OFFSET)
+      this.playerCtrl.root.position = EarthWorld.EARTH_OFFSET.clone().add(new BABYLON.Vector3(0, 1.2, 0));
+      this.cameraCtrl.reset();
+      console.log('[GameManager] Player spawned as ALIEN OPERATIVE on Planet Earth map!');
+    } else {
+      // Spawn player on Shuka Map
+      this.playerCtrl.root.position = new BABYLON.Vector3(0, 1.2, 0);
+      this.cameraCtrl.reset();
+      console.log('[GameManager] Player spawned as HUMAN OPERATIVE on Planet Shuka map!');
+    }
 
     if (this.screenMgr) {
       this.screenMgr.setScreenState(ScreenState.GAMEPLAY);

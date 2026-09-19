@@ -29,6 +29,7 @@ export class MainMenu {
 
   private viewMode: MainMenuViewMode = 'MAIN';
   private storedName: string = '';
+  public storedRole: 'HUMAN' | 'ALIEN' = 'HUMAN';
   private roomCodeInputVal: string = '';
   private isSubmitting: boolean = false;
 
@@ -44,6 +45,7 @@ export class MainMenu {
     this.onOpenGameInfoCb = options.onOpenGameInfo;
 
     this.loadPlayerName();
+    this.loadPlayerRole();
     this.render();
   }
 
@@ -63,6 +65,26 @@ export class MainMenu {
       this.storedName = '';
     }
     return this.storedName;
+  }
+
+  private loadPlayerRole(): 'HUMAN' | 'ALIEN' {
+    try {
+      const r = localStorage.getItem('earth_shuka_player_role');
+      if (r === 'ALIEN') this.storedRole = 'ALIEN';
+      else this.storedRole = 'HUMAN';
+    } catch {
+      this.storedRole = 'HUMAN';
+    }
+    return this.storedRole;
+  }
+
+  private savePlayerRole(role: 'HUMAN' | 'ALIEN'): void {
+    this.storedRole = role;
+    try {
+      localStorage.setItem('earth_shuka_player_role', role);
+    } catch {
+      // safe fallback
+    }
   }
 
   private savePlayerName(name: string): void {
@@ -168,7 +190,36 @@ export class MainMenu {
               class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-mono text-sm focus:outline-none focus:border-sky-500 focus:bg-white transition-colors"
               autocomplete="off"
             />
-            <p class="text-[11px] font-mono text-slate-400">Max 16 characters. Stored locally.</p>
+          </div>
+
+          <div class="space-y-1">
+            <label class="block text-xs font-mono font-bold text-slate-700 uppercase">
+              SELECT FACTION & MAP
+            </label>
+            <div class="grid grid-cols-2 gap-2 font-mono text-xs">
+              <button 
+                id="btn-role-human" 
+                type="button" 
+                class="py-2 px-2.5 rounded-xl border text-center font-bold transition-all cursor-pointer ${
+                  this.storedRole === 'HUMAN' 
+                    ? 'bg-sky-600 border-sky-700 text-white shadow-md' 
+                    : 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
+                }"
+              >
+                🛡️ HUMAN<br/><span class="text-[10px] font-normal opacity-90">(Planet Shuka)</span>
+              </button>
+              <button 
+                id="btn-role-alien" 
+                type="button" 
+                class="py-2 px-2.5 rounded-xl border text-center font-bold transition-all cursor-pointer ${
+                  this.storedRole === 'ALIEN' 
+                    ? 'bg-rose-600 border-rose-700 text-white shadow-md' 
+                    : 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
+                }"
+              >
+                👾 ALIEN<br/><span class="text-[10px] font-normal opacity-90">(Planet Earth)</span>
+              </button>
+            </div>
           </div>
 
           <div class="flex gap-3 pt-2">
@@ -291,6 +342,18 @@ export class MainMenu {
       this.container.querySelector('#btn-form-back')?.addEventListener('click', () => {
         this.audioMgr.playClick();
         this.setViewMode('MAIN');
+      });
+
+      this.container.querySelector('#btn-role-human')?.addEventListener('click', () => {
+        this.audioMgr.playClick();
+        this.savePlayerRole('HUMAN');
+        this.render();
+      });
+
+      this.container.querySelector('#btn-role-alien')?.addEventListener('click', () => {
+        this.audioMgr.playClick();
+        this.savePlayerRole('ALIEN');
+        this.render();
       });
 
       if (this.viewMode === 'CREATE') {
