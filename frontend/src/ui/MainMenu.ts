@@ -292,7 +292,6 @@ export class MainMenu {
             await this.onCreateRoomCb(trimmed);
           } catch (err: any) {
             NotificationToast.show({ message: err?.message || 'Failed to create room', type: 'error' });
-          } finally {
             this.isSubmitting = false;
             if (this.viewMode === 'CREATE') this.render();
           }
@@ -338,7 +337,6 @@ export class MainMenu {
             await this.onJoinRoomCb(trimmedName, trimmedCode);
           } catch (err: any) {
             NotificationToast.show({ message: err?.message || 'Failed to join room', type: 'error' });
-          } finally {
             this.isSubmitting = false;
             if (this.viewMode === 'JOIN') this.render();
           }
