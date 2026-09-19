@@ -63,11 +63,18 @@ export class NetworkManager {
       return this.socket;
     }
 
-    // Connect to same origin host/port
-    this.socket = io(window.location.origin, {
+    // Determine server URL: env variable, Vercel frontend fallback to Render backend, or local origin
+    const envUrl = (import.meta as any).env?.VITE_SERVER_URL || (import.meta as any).env?.VITE_SOCKET_URL;
+    const isVercel = typeof window !== 'undefined' && window.location.hostname.includes('vercel.app');
+    const defaultRenderBackend = 'https://games-lf8e.onrender.com';
+    const serverUrl = envUrl || (isVercel ? defaultRenderBackend : window.location.origin);
+
+    console.log(`[NetworkManager] Connecting to Socket.IO server at: ${serverUrl}`);
+
+    this.socket = io(serverUrl, {
       transports: ['websocket', 'polling'],
       reconnection: true,
-      reconnectionAttempts: 10,
+      reconnectionAttempts: 15,
       reconnectionDelay: 1000
     });
 

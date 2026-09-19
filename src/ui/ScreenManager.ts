@@ -61,6 +61,11 @@ export class ScreenManager {
 
     // Setup network event listeners for toasts and status updates
     this.setupNetworkListeners();
+
+    // Auto finish loading after initialization
+    setTimeout(() => {
+      this.finishLoading();
+    }, 1200);
   }
 
   public setScreenState(state: ScreenState): void {
