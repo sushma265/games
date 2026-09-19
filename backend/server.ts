@@ -3,7 +3,7 @@ import http from 'http';
 import path from 'path';
 import { Server as SocketIOServer } from 'socket.io';
 import { createServer as createViteServer } from 'vite';
-import { RoomManager } from './server/roomManager';
+import { RoomManager } from './roomManager';
 
 async function startServer() {
   const app = express();
@@ -16,7 +16,7 @@ async function startServer() {
     }
   });
 
-  const PORT = 3000;
+  const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
   app.use(express.json());
 
