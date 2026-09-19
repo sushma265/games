@@ -33,7 +33,7 @@ export class ConnectionStatusUI {
     this.unsubs.push(unsubError);
 
     // Initial check
-    if (this.networkMgr.isConnected) {
+    if (this.networkMgr.isConnected()) {
       this.state = 'CONNECTED';
     } else {
       this.state = 'CONNECTING';

@@ -177,13 +177,16 @@ export class AbilitySystem {
     return null;
   }
 
+  private getAbilityConfig(id: AbilityId) {
+    if (id === 'EMP_SURGE') return ABILITY_CONFIG.empSurge;
+    if (id === 'OVERCHARGE') return ABILITY_CONFIG.overcharge;
+    return ABILITY_CONFIG.scan;
+  }
+
   /**
    * Ticks cooldowns, active effects, and UI feedback
    */
   public update(deltaSeconds: number): void {
-    // Tick centralized cooldown manager
-    this.cooldownMgr.update(deltaSeconds);
-
     // Tick feedback banner
     if (this.currentFeedback) {
       this.currentFeedback.duration -= deltaSeconds;
@@ -217,10 +220,12 @@ export class AbilitySystem {
       return { success: false, message: 'Invalid ability' };
     }
 
+    const config = this.getAbilityConfig(abilityId);
+
     // 1. Cooldown validation
     if (!this.cooldownMgr.canUse(abilityId)) {
-      const remaining = Math.ceil(this.cooldownMgr.getRemainingCooldown(abilityId));
-      const message = `${ABILITY_CONFIG[abilityId].name} RECHARGING: ${remaining}s`;
+      const remaining = Math.ceil(this.cooldownMgr.getRemaining(abilityId));
+      const message = `${config.name} RECHARGING: ${remaining}s`;
       this.showFeedback(message, 'warning', 1.8);
       return { success: false, message };
     }
@@ -230,7 +235,7 @@ export class AbilitySystem {
       const playerPos = this.playerPositionProvider ? this.playerPositionProvider() : undefined;
       const vPos = playerPos ? { x: playerPos.x, y: playerPos.y, z: playerPos.z } : undefined;
       this.networkMgr.sendUseAbility(abilityId, vPos);
-      return { success: true, message: `Dispatched ${ABILITY_CONFIG[abilityId].name}` };
+      return { success: true, message: `Dispatched ${config.name}` };
     }
 
     // 3. Single-Player / Offline Local Authoritative Execution
@@ -241,7 +246,7 @@ export class AbilitySystem {
    * Local authoritative resolution when in single-player mode
    */
   private executeLocalAbility(abilityId: AbilityId): { success: boolean; message?: string } {
-    const config = ABILITY_CONFIG[abilityId];
+    const config = this.getAbilityConfig(abilityId);
 
     if (abilityId === 'EMP_SURGE') {
       if (this.alienAI.state !== 'EXTRACTING') {
@@ -269,7 +274,7 @@ export class AbilitySystem {
       }
 
       const edBonus = this.specialistModifiersProvider ? (this.specialistModifiersProvider().earthDefenseBonus || 0) : 0;
-      const setback = config.baseReduction * (1 + edBonus);
+      const setback = GAME_BALANCE.abilities.overchargeBaseReduction * (1 + edBonus);
 
       this.cooldownMgr.startCooldown('OVERCHARGE', config.cooldown, config.duration);
       this.audioMgr.playOvercharge();
@@ -334,7 +339,7 @@ export class AbilitySystem {
     cooldown: number;
     setback?: number;
   }): void {
-    const isLocal = this.networkMgr?.socket?.id === data.playerId;
+    const isLocal = this.networkMgr?.socketId === data.playerId;
 
     if (data.ability === 'EMP_SURGE') {
       this.audioMgr.playEMPSurge();
@@ -409,7 +414,7 @@ export class AbilitySystem {
   public getCooldown(id: 1 | 2 | 3 | string): number {
     const aid = this.normalizeAbilityId(id);
     if (!aid) return 0;
-    return this.cooldownMgr.getRemainingCooldown(aid);
+    return this.cooldownMgr.getRemaining(aid);
   }
 
   public getActiveRemaining(id: 1 | 2 | 3 | string): number {
@@ -426,15 +431,15 @@ export class AbilitySystem {
 
   public getAbilityCardState(id: 1 | 2 | 3): AbilityState {
     const aid: AbilityId = id === 1 ? 'EMP_SURGE' : id === 2 ? 'OVERCHARGE' : 'SCAN';
-    const config = ABILITY_CONFIG[aid];
-    const currentCooldown = this.cooldownMgr.getRemainingCooldown(aid);
+    const config = this.getAbilityConfig(aid);
+    const currentCooldown = this.cooldownMgr.getRemaining(aid);
     const activeRemaining = this.cooldownMgr.getActiveRemaining(aid);
 
     return {
       id,
       key: aid,
       name: config.name,
-      hotkey: config.hotkey,
+      hotkey: config.key,
       cooldownMax: config.cooldown,
       currentCooldown,
       isActive: activeRemaining > 0,

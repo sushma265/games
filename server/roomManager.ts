@@ -1095,7 +1095,55 @@ export class RoomManager {
         socket.emit('GAME_STATE_SYNC', payload);
       });
 
-      // 8. LEAVE_ROOM
+      // 8. REQUEST_REMATCH (Return room to LOBBY for a new match)
+      socket.on('REQUEST_REMATCH', (_data: unknown, callback?: (res: any) => void) => {
+        try {
+          const roomCode = this.playerRoomMap.get(socket.id);
+          if (!roomCode) {
+            if (callback) callback({ success: false, error: 'ROOM NOT FOUND' });
+            return;
+          }
+
+          const room = this.rooms.get(roomCode);
+          if (!room) {
+            if (callback) callback({ success: false, error: 'ROOM NOT FOUND' });
+            return;
+          }
+
+          // Reset room state for rematch
+          this.stopAuthoritativeAlienAI(room);
+          room.status = 'LOBBY';
+          room.humanProgress = 0;
+          room.alienProgress = 0;
+          room.collectedShukaCoreIds.clear();
+          room.earthCores = INITIAL_EARTH_CORES.map((c) => ({ ...c, position: { ...c.position }, collected: false, extracting: false }));
+          room.alien = {
+            position: { x: 0, y: 1.5, z: 0 },
+            rotation: { x: 0, y: 0, z: 0 },
+            state: 'IDLE',
+            targetCoreId: null,
+            extractionProgress: 0,
+            collectedCores: 0
+          };
+          room.specialists.isLocked = false;
+          room.players.forEach((p) => {
+            p.ready = p.isHost;
+          });
+
+          console.log(`[RoomManager] Room ${roomCode} reset to LOBBY for REMATCH`);
+
+          const sanitizedRoom = this.serializeRoom(room);
+          this.io.to(roomCode).emit('REMATCH_STARTED', { room: sanitizedRoom });
+          this.io.to(roomCode).emit('ROOM_UPDATED', { room: sanitizedRoom });
+
+          if (callback) callback({ success: true, room: sanitizedRoom });
+        } catch (err: any) {
+          console.error('[RoomManager] Error processing REQUEST_REMATCH:', err);
+          if (callback) callback({ success: false, error: err?.message || 'Rematch failed' });
+        }
+      });
+
+      // 9. LEAVE_ROOM
       socket.on('LEAVE_ROOM', (_data: unknown, callback?: (res: any) => void) => {
         this.handleLeave(socket);
         if (callback) callback({ success: true });

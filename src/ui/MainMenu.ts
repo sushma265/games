@@ -123,6 +123,10 @@ export class MainMenu {
           <button id="btn-menu-settings" class="w-full py-3 px-6 bg-white hover:bg-slate-50 text-slate-700 font-bold font-display text-xs tracking-wider uppercase rounded-xl border border-slate-200 transition-all duration-150 shadow-sm cursor-pointer">
             SETTINGS
           </button>
+
+          <button id="btn-menu-demo" class="w-full py-2.5 px-6 bg-slate-50 hover:bg-slate-100 text-sky-700 font-bold font-mono text-xs tracking-wider uppercase rounded-xl border border-sky-200 transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer">
+            <span>⚡</span> QUICK DEMO MODE
+          </button>
         </div>
       `;
     }
@@ -254,6 +258,13 @@ export class MainMenu {
       this.container.querySelector('#btn-menu-settings')?.addEventListener('click', () => {
         this.audioMgr.playClick();
         this.onOpenSettingsCb();
+      });
+
+      this.container.querySelector('#btn-menu-demo')?.addEventListener('click', () => {
+        this.audioMgr.playClick();
+        if ((window as any).debugGame && (window as any).debugGame.startSingleplayer) {
+          (window as any).debugGame.startSingleplayer();
+        }
       });
     } else {
       this.container.querySelector('#btn-form-back')?.addEventListener('click', () => {

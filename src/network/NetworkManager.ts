@@ -345,8 +345,8 @@ export class NetworkManager {
     this.socket.emit('GET_GAME_STATE');
   }
 
-  public get isConnected(): boolean {
-    return this.socket?.connected ?? false;
+  public isConnected(): boolean {
+    return !!(this.socket && this.socket.connected);
   }
 
   public get localPlayer(): NetworkPlayer | null {
@@ -542,6 +542,29 @@ export class NetworkManager {
     }
   }
 
+  public get socketId(): string | null {
+    return this.socket?.id || this.localPlayerId;
+  }
+
+  /**
+   * Requests return to lobby for a rematch
+   */
+  public async requestRematch(): Promise<{ success: boolean; error?: string }> {
+    return new Promise((resolve) => {
+      if (!this.socket || !this.currentRoom) {
+        resolve({ success: false, error: 'Not in a room' });
+        return;
+      }
+      this.socket.emit('REQUEST_REMATCH', {}, (res: any) => {
+        if (res && res.success) {
+          resolve({ success: true });
+        } else {
+          resolve({ success: false, error: res?.error || 'Failed to request rematch' });
+        }
+      });
+    });
+  }
+
   public disconnect(): void {
     if (this.socket) {
       this.socket.disconnect();
@@ -550,3 +573,4 @@ export class NetworkManager {
     }
   }
 }
+

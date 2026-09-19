@@ -16,6 +16,7 @@ import { SpecialistAllocation, SpecialistModifiers, SPECIALIST_CONFIG } from '..
 import { AbilitySystem } from '../gameplay/AbilitySystem';
 import { ScreenManager, ScreenState } from '../ui/ScreenManager';
 import { ResultScreen } from '../ui/ResultScreen';
+import { GameplayTutorialOverlay } from '../ui/GameplayTutorialOverlay';
 
 export enum GameState {
   MENU = 'MENU',
@@ -72,6 +73,7 @@ export class GameManager {
   public alienAI: AlienAI;
   public isReconCameraActive: boolean = false;
   public coreManager: CoreManager;
+  public abilitySys: AbilitySystem;
 
   // Compatibility getter for single-core references
   public get coreCtrl(): CoreController {
@@ -203,6 +205,17 @@ export class GameManager {
     this.networkMgr = new NetworkManager();
     this.multiplayerMgr = new MultiplayerManager(this.scene, this.networkMgr, this.playerCtrl);
 
+    this.abilitySys = new AbilitySystem(
+      this.alienAI,
+      this.coreManager,
+      this.audioMgr,
+      this.cameraCtrl,
+      this.earthWorld,
+      this.networkMgr,
+      () => this.specialistModifiers,
+      () => this.playerCtrl.root.position
+    );
+
     this.screenMgr = new ScreenManager({
       menuRoot,
       hudRoot,
@@ -244,6 +257,10 @@ export class GameManager {
         }
       }
     );
+
+    this.networkMgr.on('REMATCH_STARTED', () => {
+      this.handleRematch(false);
+    });
 
     this.networkMgr.on('ROOM_CREATED', () => {
       this.state = GameState.LOBBY;
@@ -377,6 +394,7 @@ export class GameManager {
     if (this.state === GameState.PLAYING) {
       // 3D Visual environment updates
       this.shukaWorld.update(deltaSeconds);
+      this.abilitySys.update(deltaSeconds);
 
       // Alien AI Update (Solo mode: local simulation; Multiplayer: fed by server)
       if (!this.multiplayerMode) {
@@ -638,6 +656,12 @@ export class GameManager {
       this.lobbyUI.hide();
     }
 
+    if (GameplayTutorialOverlay.shouldShow()) {
+      new GameplayTutorialOverlay(document.body, () => {
+        // Tutorial dismissed
+      });
+    }
+
     console.log(`[GameManager] Match started: Multi=${this.multiplayerMode}, Room=${this.roomCode}, Host=${this.isHost}`);
 
     this.emitEvent('GAME_STARTED', {
@@ -665,7 +689,7 @@ export class GameManager {
     }
   }
 
-  public handleRematch(): void {
+  public handleRematch(requestServer: boolean = true): void {
     this.humanCores = 0;
     this.alienCores = 0;
     this.matchTime = 0;
@@ -673,6 +697,10 @@ export class GameManager {
     this.coreManager.resetAll();
     this.alienAI.reset();
     this.earthWorld.reset();
+
+    if (requestServer && this.multiplayerMode && this.networkMgr) {
+      this.networkMgr.requestRematch();
+    }
 
     this.state = GameState.LOBBY;
     if (this.screenMgr) {
