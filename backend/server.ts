@@ -1,8 +1,8 @@
 import express from 'express';
 import http from 'http';
 import path from 'path';
+import fs from 'fs';
 import { Server as SocketIOServer } from 'socket.io';
-import { createServer as createViteServer } from 'vite';
 import { RoomManager } from './roomManager';
 
 async function startServer() {
@@ -23,28 +23,22 @@ async function startServer() {
   // Attach RoomManager for authoritative multiplayer room handling
   const roomManager = new RoomManager(io);
 
-  // Health and diagnostic API endpoint
-  app.get('/api/health', (_req, res) => {
+  // Root and Health API endpoints
+  app.get(['/', '/api/health'], (_req, res) => {
     res.json({
-      status: 'ok',
+      status: 'online',
       service: 'EARTH // SHUKA Server',
       activeRooms: roomManager.getRoomCount(),
       timestamp: Date.now()
     });
   });
 
-  // Vite middleware for development or static serving for production
-  if (process.env.NODE_ENV !== 'production') {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa'
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
+  // Serve static frontend files if present (optional single-host setup)
+  const frontendDistPath = path.join(process.cwd(), '..', 'frontend', 'dist');
+  if (fs.existsSync(frontendDistPath)) {
+    app.use(express.static(frontendDistPath));
     app.get('*', (_req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+      res.sendFile(path.join(frontendDistPath, 'index.html'));
     });
   }
 
