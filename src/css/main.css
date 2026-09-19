@@ -1,0 +1,167 @@
+@import "tailwindcss";
+
+:root {
+  --color-shuka-cyan: #00f3ff;
+  --color-shuka-purple: #9d4edd;
+  --color-shuka-violet: #6a0dad;
+  --color-earth-amber: #ff9e00;
+  --color-earth-crimson: #ff2a5f;
+  --color-bg-dark: #07060e;
+  --font-display: 'Orbitron', monospace, sans-serif;
+  --font-body: 'Rajdhani', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--color-bg-dark);
+  font-family: var(--font-body);
+  color: #e2e8f0;
+}
+
+#renderCanvas {
+  width: 100vw;
+  height: 100vh;
+  touch-action: none;
+  display: block;
+}
+
+/* Sci-fi Scanline and Vignette Effects */
+.sci-fi-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at center, transparent 40%, rgba(5, 2, 15, 0.85) 100%);
+  z-index: 5;
+}
+
+.sci-fi-scanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    rgba(18, 16, 28, 0) 50%, 
+    rgba(0, 0, 0, 0.3) 50%
+  );
+  background-size: 100% 4px;
+  z-index: 6;
+  opacity: 0.35;
+}
+
+/* Sci-Fi Chamfered Cut Corner Containers */
+.sci-fi-panel {
+  background: rgba(10, 8, 22, 0.75);
+  border: 1px solid rgba(0, 243, 255, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  clip-path: polygon(
+    0 10px, 
+    10px 0, 
+    calc(100% - 10px) 0, 
+    100% 10px, 
+    100% calc(100% - 10px), 
+    calc(100% - 10px) 100%, 
+    10px 100%, 
+    0 calc(100% - 10px)
+  );
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.7), inset 0 0 15px rgba(0, 243, 255, 0.05);
+}
+
+.sci-fi-panel-danger {
+  background: rgba(22, 8, 14, 0.75);
+  border: 1px solid rgba(255, 42, 95, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  clip-path: polygon(
+    0 10px, 
+    10px 0, 
+    calc(100% - 10px) 0, 
+    100% 10px, 
+    100% calc(100% - 10px), 
+    calc(100% - 10px) 100%, 
+    10px 100%, 
+    0 calc(100% - 10px)
+  );
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.7), inset 0 0 15px rgba(255, 42, 95, 0.08);
+}
+
+.sci-fi-btn {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: rgba(0, 243, 255, 0.12);
+  border: 1px solid rgba(0, 243, 255, 0.6);
+  color: #00f3ff;
+  padding: 12px 24px;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.sci-fi-btn:hover {
+  background: rgba(0, 243, 255, 0.3);
+  box-shadow: 0 0 20px rgba(0, 243, 255, 0.5);
+  transform: translateY(-1px);
+  color: #ffffff;
+}
+
+.sci-fi-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 0 8px rgba(0, 243, 255, 0.3);
+}
+
+.sci-fi-btn-danger {
+  background: rgba(255, 42, 95, 0.15);
+  border-color: rgba(255, 42, 95, 0.7);
+  color: #ff2a5f;
+}
+
+.sci-fi-btn-danger:hover {
+  background: rgba(255, 42, 95, 0.35);
+  box-shadow: 0 0 20px rgba(255, 42, 95, 0.6);
+  color: #ffffff;
+}
+
+.sci-fi-btn-amber {
+  background: rgba(255, 158, 0, 0.15);
+  border-color: rgba(255, 158, 0, 0.7);
+  color: #ff9e00;
+}
+
+.sci-fi-btn-amber:hover {
+  background: rgba(255, 158, 0, 0.35);
+  box-shadow: 0 0 20px rgba(255, 158, 0, 0.6);
+  color: #ffffff;
+}
+
+/* Pulsing text glow */
+.glow-cyan {
+  text-shadow: 0 0 10px rgba(0, 243, 255, 0.7), 0 0 20px rgba(0, 243, 255, 0.3);
+}
+
+.glow-crimson {
+  text-shadow: 0 0 10px rgba(255, 42, 95, 0.7), 0 0 20px rgba(255, 42, 95, 0.3);
+}
+
+.glow-purple {
+  text-shadow: 0 0 10px rgba(157, 78, 221, 0.7), 0 0 20px rgba(157, 78, 221, 0.3);
+}
+
+.glow-amber {
+  text-shadow: 0 0 10px rgba(255, 158, 0, 0.7), 0 0 20px rgba(255, 158, 0, 0.3);
+}

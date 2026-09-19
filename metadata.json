@@ -1,0 +1,6 @@
+{
+  "name": "EARTH // SHUKA",
+  "description": "Two Worlds. One Race for Survival. 3D Sci-Fi survival, strategy, and exploration game built with Babylon.js and WebGL.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
