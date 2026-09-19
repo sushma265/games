@@ -1,3 +1,9 @@
+import './index.css';
+import './css/main.css';
+import './css/hud.css';
+import './css/menu.css';
+import './css/lobby.css';
+import './css/mobile.css';
 import { GameManager } from './core/GameManager';
 
 window.addEventListener('DOMContentLoaded', () => {

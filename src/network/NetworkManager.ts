@@ -367,16 +367,55 @@ export class NetworkManager {
   }
 
   /**
+   * Helper to ensure Socket.IO connection is active, attempting reconnect if needed
+   */
+  public async ensureConnected(timeoutMs: number = 8000): Promise<boolean> {
+    if (this.socket && this.socket.connected) return true;
+    this.connect();
+
+    return new Promise((resolve) => {
+      if (this.socket && this.socket.connected) {
+        resolve(true);
+        return;
+      }
+
+      const timer = setTimeout(() => {
+        resolve(!!(this.socket && this.socket.connected));
+      }, timeoutMs);
+
+      const onConnect = () => {
+        clearTimeout(timer);
+        resolve(true);
+      };
+
+      if (this.socket) {
+        this.socket.once('connect', onConnect);
+      }
+    });
+  }
+
+  /**
    * Request room creation from server
    */
   public async createRoom(playerName: string): Promise<{ success: boolean; room?: NetworkRoom; error?: string }> {
+    const connected = await this.ensureConnected();
+    if (!connected) {
+      return { success: false, error: 'Server connecting... Please try again in a few seconds (Server warming up)' };
+    }
+
     return new Promise((resolve) => {
-      if (!this.socket) {
-        resolve({ success: false, error: 'Network not initialized' });
-        return;
-      }
       this.localPlayerName = playerName;
-      this.socket.emit('CREATE_ROOM', { playerName }, (response: any) => {
+      let acked = false;
+
+      const ackTimeout = setTimeout(() => {
+        if (!acked) {
+          resolve({ success: false, error: 'Server timeout. Please try again.' });
+        }
+      }, 6000);
+
+      this.socket!.emit('CREATE_ROOM', { playerName }, (response: any) => {
+        acked = true;
+        clearTimeout(ackTimeout);
         if (response && response.success) {
           this.currentRoom = response.room;
           resolve({ success: true, room: response.room });
@@ -394,13 +433,24 @@ export class NetworkManager {
     playerName: string,
     roomCode: string
   ): Promise<{ success: boolean; room?: NetworkRoom; error?: string }> {
+    const connected = await this.ensureConnected();
+    if (!connected) {
+      return { success: false, error: 'Server connecting... Please try again in a few seconds (Server warming up)' };
+    }
+
     return new Promise((resolve) => {
-      if (!this.socket) {
-        resolve({ success: false, error: 'Network not initialized' });
-        return;
-      }
       this.localPlayerName = playerName;
-      this.socket.emit('JOIN_ROOM', { playerName, roomCode }, (response: any) => {
+      let acked = false;
+
+      const ackTimeout = setTimeout(() => {
+        if (!acked) {
+          resolve({ success: false, error: 'Server timeout. Please try again.' });
+        }
+      }, 6000);
+
+      this.socket!.emit('JOIN_ROOM', { playerName, roomCode }, (response: any) => {
+        acked = true;
+        clearTimeout(ackTimeout);
         if (response && response.success) {
           this.currentRoom = response.room;
           resolve({ success: true, room: response.room });

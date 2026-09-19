@@ -87,7 +87,7 @@ export class MainMenu {
         </div>
 
         <!-- Main Card Container -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-xl space-y-6 transition-all duration-200">
+        <div class="menu-card-container bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-xl space-y-6 transition-all duration-200 mx-auto">
           
           ${this.renderCardContent()}
 
