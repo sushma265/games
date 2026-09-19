@@ -38,6 +38,7 @@ export class HUDManager {
   private nextNotifId: number = 1;
   public isDemoMode: boolean = false;
   public playerName: string = 'PLAYER';
+  public playerRole: 'HUMAN' | 'ALIEN' = 'HUMAN';
   public isOnline: boolean = true;
 
   constructor(
@@ -169,8 +170,12 @@ export class HUDManager {
           <span id="hud-network-status" class="text-[9px] text-slate-400 uppercase">ONLINE</span>
         </div>
 
-        <div class="status-badge sci-fi-panel">
-          <div class="flex flex-col">
+        <div class="status-badge sci-fi-panel space-y-1">
+          <div class="flex items-center justify-between gap-3 text-[10px] font-mono">
+            <span class="text-slate-400 uppercase">Survival Resources:</span>
+            <span id="hud-survival-resources" class="font-bold text-sky-300">🍖 100% | 🔋 100% | 🔩 0/5</span>
+          </div>
+          <div class="flex flex-col border-t border-slate-800/80 pt-1">
             <span class="text-[10px] font-mono text-slate-400 uppercase">Specialist Crew</span>
             <div id="specialists-badge-text" class="text-xs font-mono font-bold text-cyan-300">
               DEF: 2 // EXT: 3
@@ -335,14 +340,24 @@ export class HUDManager {
       this.alienExtractionBadgeEl.classList.add('hidden');
     }
 
-    // 11. Phase 16: Player Identity & Socket Status
+    // 11. Phase 16: Player Identity, Faction Survival Resources & Socket Status
     const nameEl = this.container.querySelector('#hud-player-name');
     const netStatusEl = this.container.querySelector('#hud-network-status');
     const netDotEl = this.container.querySelector('#hud-network-dot');
-    if (nameEl) nameEl.textContent = this.playerName.toUpperCase();
+    const survivalResEl = this.container.querySelector('#hud-survival-resources');
+
+    if (nameEl) nameEl.textContent = `${this.playerRole}: ${this.playerName.toUpperCase()}`;
     if (netStatusEl) netStatusEl.textContent = this.isOnline ? 'ONLINE' : 'RECONNECTING...';
     if (netDotEl) {
       netDotEl.className = `w-2 h-2 rounded-full ${this.isOnline ? 'bg-emerald-400' : 'bg-amber-400 animate-ping'}`;
+    }
+
+    if (survivalResEl) {
+      if (this.playerRole === 'ALIEN') {
+        survivalResEl.textContent = `💠 100% | ⚡ 100% | 🧬 ${aScore}/5`;
+      } else {
+        survivalResEl.textContent = `🍖 100% | 🔋 100% | 🔩 ${hScore}/5`;
+      }
     }
   }
 

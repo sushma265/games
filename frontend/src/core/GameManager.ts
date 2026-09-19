@@ -20,6 +20,7 @@ import { GameplayTutorialOverlay } from '../ui/GameplayTutorialOverlay';
 import { GameAnnouncement } from '../ui/GameAnnouncement';
 import { OnboardingOverlay } from '../ui/OnboardingOverlay';
 import { GameInfoModal } from '../ui/GameInfoModal';
+import { CrossWorldEventManager } from '../gameplay/CrossWorldEvents';
 
 export enum GameState {
   MENU = 'MENU',
@@ -99,6 +100,7 @@ export class GameManager {
   public isHost: boolean = false;
   public multiplayerMode: boolean = false;
   public isDemoMode: boolean = false;
+  public crossWorldEvents: CrossWorldEventManager = new CrossWorldEventManager();
   public networkMgr: NetworkManager;
   public multiplayerMgr: MultiplayerManager;
 
@@ -414,9 +416,10 @@ export class GameManager {
 
     // 2. Active Gameplay Processing (while PLAYING)
     if (this.state === GameState.PLAYING) {
-      // 3D Visual environment updates
+      // 3D Visual environment updates & Cross-world events
       this.shukaWorld.update(deltaSeconds);
       this.abilitySys.update(deltaSeconds);
+      this.crossWorldEvents.update(deltaSeconds, true);
 
       // Alien AI Update (Solo mode: local simulation; Multiplayer: fed by server)
       if (!this.multiplayerMode) {
@@ -561,7 +564,9 @@ export class GameManager {
 
     if ((this.temporaryHUD as any)?.eventFeed) {
       (this.temporaryHUD as any).eventFeed.add(`You collected Shuka Core #${this.humanCores}`, 'success');
+      this.crossWorldEvents.setEventFeed((this.temporaryHUD as any).eventFeed);
     }
+    this.crossWorldEvents.triggerHumanCoreCollectedConsequence(this.humanCores);
 
     this.emitEvent('HUMAN_CORE_COLLECTED', {
       humanCores: this.humanCores,
@@ -592,7 +597,9 @@ export class GameManager {
 
     if ((this.temporaryHUD as any)?.eventFeed) {
       (this.temporaryHUD as any).eventFeed.add(`Alien collected Earth Core #${this.alienCores}`, 'alien');
+      this.crossWorldEvents.setEventFeed((this.temporaryHUD as any).eventFeed);
     }
+    this.crossWorldEvents.triggerAlienCoreCollectedConsequence(this.alienCores);
 
     this.emitEvent('ALIEN_CORE_COLLECTED', {
       alienCores: this.alienCores,
