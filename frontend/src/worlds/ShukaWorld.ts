@@ -1,8 +1,13 @@
 import * as BABYLON from 'babylonjs';
 
 /**
- * ShukaWorld - Dark, mysterious alien landscape featuring floating islands,
- * crystalline formations, bioluminescent alien structures, ancient ruins, and atmospheric fog.
+ * ShukaWorld - Alien Anti-Gravity Crystalline World
+ * - Visibly floating archipelago suspended high above a pastel cloud layer.
+ * - Central Shuka Sanctuary Hub + 5 Major Floating Core Islands matching CORE_LOCATIONS.
+ * - Tapering 3D rocky cone undersides with bioluminescent crystal cores and structural struts.
+ * - Pastel pink/purple/cyan palette matching Reference Image 2.
+ * - Floating crystal stepping-stones & bridges connecting islands over open sky.
+ * - Dynamic bobbing floating crystal shards and atmospheric sky depth.
  */
 export class ShukaWorld {
   private scene: BABYLON.Scene;
@@ -25,77 +30,211 @@ export class ShukaWorld {
   constructor(scene: BABYLON.Scene) {
     this.scene = scene;
     this.setupAtmosphere();
-    this.buildTerrain();
+    this.buildFloatingArchipelago();
     this.buildAncientRuins();
     this.buildCrystallineFormations();
-    this.buildFloatingIslands();
+    this.buildFloatingDebris();
     this.buildBioluminescentFlora();
     this.buildAncientPortal();
   }
 
   private setupAtmosphere(): void {
-    // Bright Crisp Daylight Atmosphere
+    // Pastel Dreamlike Alien Atmosphere matching Reference Image 2
     this.scene.fogMode = BABYLON.Scene.FOGMODE_EXP2;
-    this.scene.fogColor = new BABYLON.Color3(0.7, 0.82, 0.94);
-    this.scene.fogDensity = 0.005;
+    this.scene.fogColor = new BABYLON.Color3(0.85, 0.75, 0.92); // Soft pastel purple-pink haze
+    this.scene.fogDensity = 0.003;
 
-    this.scene.clearColor = new BABYLON.Color4(0.62, 0.78, 0.92, 1.0);
+    this.scene.clearColor = new BABYLON.Color4(0.78, 0.85, 0.98, 1.0); // Soft cyan sky
 
     // High-visibility bright ambient & directional lighting
     const hemiLight = new BABYLON.HemisphericLight('shukaHemi', new BABYLON.Vector3(0, 1, 0), this.scene);
-    hemiLight.intensity = 1.35;
-    hemiLight.groundColor = new BABYLON.Color3(0.4, 0.45, 0.55); // Crisp ambient underglow
-    hemiLight.diffuse = new BABYLON.Color3(0.85, 0.9, 1.0); // Bright sky fill
+    hemiLight.intensity = 1.4;
+    hemiLight.groundColor = new BABYLON.Color3(0.65, 0.45, 0.75); // Deep magenta underglow
+    hemiLight.diffuse = new BABYLON.Color3(0.9, 0.92, 1.0); // Soft pastel sky fill
 
-    const dirLight = new BABYLON.DirectionalLight('shukaMoon', new BABYLON.Vector3(-0.6, -1, 0.4), this.scene);
-    dirLight.intensity = 1.45;
-    dirLight.diffuse = new BABYLON.Color3(1.0, 0.95, 0.85); // Warm sunbeam
+    const dirLight = new BABYLON.DirectionalLight('shukaSun', new BABYLON.Vector3(-0.5, -1, 0.3), this.scene);
+    dirLight.intensity = 1.35;
+    dirLight.diffuse = new BABYLON.Color3(1.0, 0.92, 0.88); // Warm pastel beam
+
+    // Distant Cloud Layer far below the floating islands (y: -70)
+    const cloudPlane = BABYLON.MeshBuilder.CreatePlane('shukaBottomClouds', { size: 600 }, this.scene);
+    cloudPlane.position.y = -70;
+    cloudPlane.rotation.x = Math.PI / 2;
+    const cloudMat = new BABYLON.StandardMaterial('shukaCloudMat', this.scene);
+    cloudMat.diffuseColor = new BABYLON.Color3(0.88, 0.78, 0.92);
+    cloudMat.emissiveColor = new BABYLON.Color3(0.45, 0.35, 0.55);
+    cloudMat.alpha = 0.85;
+    cloudPlane.material = cloudMat;
   }
 
-  private buildTerrain(): void {
-    // Basalt Ground with procedural vertex displacement
-    const ground = BABYLON.MeshBuilder.CreateGround('shukaGround', {
-      width: 180,
-      height: 180,
-      subdivisions: 45
-    }, this.scene);
-    ground.checkCollisions = true;
+  /**
+   * Constructs the 3D Anti-Gravity Floating Archipelago consisting of:
+   * 1. Central Shuka Sanctuary Hub Island
+   * 2. 5 Major Floating Core Islands for the 5 Shuka Energy Cores
+   * 3. Stepping stone bridges over open sky gaps
+   */
+  private buildFloatingArchipelago(): void {
+    // Pastel materials matching Reference Image 2
+    const greenTopMat = new BABYLON.StandardMaterial('shukaGreenTopMat', this.scene);
+    greenTopMat.diffuseColor = new BABYLON.Color3(0.6, 0.88, 0.72); // Pastel mint green top grass
+    greenTopMat.specularColor = new BABYLON.Color3(0.2, 0.3, 0.25);
 
-    // Apply gentle undulating alien hills
-    const positions = ground.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-    if (positions) {
-      for (let i = 0; i < positions.length; i += 3) {
-        const x = positions[i];
-        const z = positions[i + 2];
-        const distFromCenter = Math.sqrt(x * x + z * z);
-        // Flatter in center, rolling mounds on outer rim
-        if (distFromCenter > 15) {
-          positions[i + 1] = Math.sin(x * 0.12) * Math.cos(z * 0.12) * 2.2 +
-                             Math.sin(x * 0.05 + z * 0.05) * 1.5;
-        }
-      }
-      ground.setVerticesData(BABYLON.VertexBuffer.PositionKind, positions);
-      ground.createNormals(true);
+    const purpleTopMat = new BABYLON.StandardMaterial('shukaPurpleTopMat', this.scene);
+    purpleTopMat.diffuseColor = new BABYLON.Color3(0.82, 0.65, 0.9); // Pastel lavender top turf
+
+    const rockUndersideMat = new BABYLON.StandardMaterial('shukaRockUndersideMat', this.scene);
+    rockUndersideMat.diffuseColor = new BABYLON.Color3(0.42, 0.45, 0.6); // Slate violet rock
+    rockUndersideMat.specularColor = new BABYLON.Color3(0.25, 0.25, 0.35);
+
+    const crystalGlowMat = new BABYLON.StandardMaterial('shukaEngineCrystalMat', this.scene);
+    crystalGlowMat.diffuseColor = new BABYLON.Color3(0, 0, 0);
+    crystalGlowMat.emissiveColor = new BABYLON.Color3(0.85, 0.25, 0.95); // Glowing magenta crystal underglow
+
+    // 1. Central Shuka Sanctuary Hub
+    const centralPos = new BABYLON.Vector3(0, 0, 0);
+    this.groundMesh = this.createAntiGravIsland(
+      'shukaCentralHub',
+      centralPos,
+      44,
+      44,
+      2.5,
+      16,
+      greenTopMat,
+      rockUndersideMat,
+      crystalGlowMat
+    );
+
+    // Decorative inner purple turf ring on central hub
+    const innerRing = BABYLON.MeshBuilder.CreateCylinder('shukaHubInnerRing', { diameter: 28, height: 0.2 }, this.scene);
+    innerRing.position = new BABYLON.Vector3(0, 1.35, 0);
+    innerRing.material = purpleTopMat;
+
+    // 2. 5 Major Floating Core Islands for the 5 Shuka Energy Cores
+    ShukaWorld.CORE_LOCATIONS.forEach((loc, idx) => {
+      const islandName = `shukaCoreIsland_${idx}`;
+      const topMat = idx % 2 === 0 ? greenTopMat : purpleTopMat;
+
+      // Heights slightly varied to create 3D Z/Y elevation depth
+      const islandPos = new BABYLON.Vector3(loc.x, loc.y - 1.8, loc.z);
+      this.createAntiGravIsland(islandName, islandPos, 22, 22, 2.0, 12, topMat, rockUndersideMat, crystalGlowMat);
+
+      // Create floating stepping stone bridges between central hub and this core island
+      this.buildSteppingStoneBridge(centralPos, islandPos, topMat, rockUndersideMat);
+    });
+  }
+
+  /**
+   * Creates an individual 3D Anti-Gravity Floating Island with top deck, cliff sides,
+   * tapering 3D rocky underside cone, glowing crystal engine tip, and support struts.
+   */
+  private createAntiGravIsland(
+    name: string,
+    position: BABYLON.Vector3,
+    width: number,
+    depth: number,
+    deckHeight: number,
+    undersideDepth: number,
+    deckMat: BABYLON.Material,
+    undersideMat: BABYLON.Material,
+    crystalGlowMat: BABYLON.Material
+  ): BABYLON.Mesh {
+    const root = new BABYLON.TransformNode(`root_${name}`, this.scene);
+    root.position = position.clone();
+
+    // Top Playable Surface Deck
+    const deck = BABYLON.MeshBuilder.CreateBox(`${name}_deck`, { width, depth, height: deckHeight }, this.scene);
+    deck.position = new BABYLON.Vector3(0, 0, 0);
+    deck.material = deckMat;
+    deck.checkCollisions = true;
+    deck.parent = root;
+
+    // Tapering 3D Inverted Rocky Underside Cone
+    const underside = BABYLON.MeshBuilder.CreateCylinder(`${name}_underside`, {
+      diameterTop: Math.min(width, depth) * 0.9,
+      diameterBottom: 2.8,
+      height: undersideDepth,
+      tessellation: 7
+    }, this.scene);
+    underside.position = new BABYLON.Vector3(0, -(deckHeight / 2 + undersideDepth / 2), 0);
+    underside.material = undersideMat;
+    underside.parent = root;
+
+    // Bioluminescent Glowing Crystal Core tip at bottom of underside
+    const engineCore = BABYLON.MeshBuilder.CreatePolyhedron(`${name}_crystalCore`, { type: 1, size: 2.2 }, this.scene);
+    engineCore.position = new BABYLON.Vector3(0, -(deckHeight / 2 + undersideDepth), 0);
+    engineCore.material = crystalGlowMat;
+    engineCore.parent = root;
+
+    // Point Light for bioluminescent underglow
+    const glowLight = new BABYLON.PointLight(`${name}_underglow`, new BABYLON.Vector3(0, -1, 0), this.scene);
+    glowLight.diffuse = new BABYLON.Color3(0.85, 0.25, 0.95);
+    glowLight.intensity = 0.9;
+    glowLight.range = 14;
+    glowLight.parent = engineCore;
+
+    // 4 Structural Rocky Struts extending from deck edges down to the bottom crystal tip
+    const strutStarts = [
+      new BABYLON.Vector3(-width * 0.35, -deckHeight / 2, -depth * 0.35),
+      new BABYLON.Vector3(width * 0.35, -deckHeight / 2, -depth * 0.35),
+      new BABYLON.Vector3(-width * 0.35, -deckHeight / 2, depth * 0.35),
+      new BABYLON.Vector3(width * 0.35, -deckHeight / 2, depth * 0.35)
+    ];
+
+    strutStarts.forEach((start, i) => {
+      const end = engineCore.position.clone();
+      const dist = BABYLON.Vector3.Distance(start, end);
+      const strut = BABYLON.MeshBuilder.CreateCylinder(`${name}_rockStrut_${i}`, { diameter: 0.9, height: dist, tessellation: 5 }, this.scene);
+      strut.position = BABYLON.Vector3.Center(start, end);
+      strut.lookAt(end);
+      strut.rotation.x += Math.PI / 2;
+      strut.material = undersideMat;
+      strut.parent = root;
+    });
+
+    return deck;
+  }
+
+  /**
+   * Builds a series of floating stepping-stone rock platforms connecting two islands over open sky.
+   */
+  private buildSteppingStoneBridge(
+    from: BABYLON.Vector3,
+    to: BABYLON.Vector3,
+    topMat: BABYLON.Material,
+    rockMat: BABYLON.Material
+  ): void {
+    const distance = BABYLON.Vector3.Distance(from, to);
+    const steps = Math.floor(distance / 7.5);
+    if (steps <= 1) return;
+
+    const dir = to.subtract(from).normalize();
+
+    for (let i = 1; i < steps; i++) {
+      const ratio = i / steps;
+      const stepPos = BABYLON.Vector3.Lerp(from, to, ratio);
+      // Slight vertical arc & horizontal offset for natural floating path
+      stepPos.y += Math.sin(ratio * Math.PI) * 1.2;
+      stepPos.x += Math.sin(i * 2.5) * 1.0;
+
+      const platform = BABYLON.MeshBuilder.CreateBox(`steppingStone_${i}`, {
+        width: 3.8,
+        depth: 3.8,
+        height: 1.0
+      }, this.scene);
+      platform.position = stepPos;
+      platform.material = topMat;
+      platform.checkCollisions = true;
+
+      // Small tapering underside cone for stepping stone
+      const stoneUnderside = BABYLON.MeshBuilder.CreateCylinder(`stoneUnderside_${i}`, {
+        diameterTop: 3.4,
+        diameterBottom: 0.8,
+        height: 2.2,
+        tessellation: 5
+      }, this.scene);
+      stoneUnderside.position = stepPos.clone().subtract(new BABYLON.Vector3(0, 1.6, 0));
+      stoneUnderside.material = rockMat;
     }
-
-    const groundMat = new BABYLON.StandardMaterial('shukaGroundMat', this.scene);
-    groundMat.diffuseColor = new BABYLON.Color3(0.45, 0.48, 0.58);
-    groundMat.specularColor = new BABYLON.Color3(0.25, 0.25, 0.35);
-    groundMat.specularPower = 16;
-    ground.material = groundMat;
-    this.groundMesh = ground;
-
-    // Outer crater mountain ring to enclose the arena
-    const ringMat = new BABYLON.StandardMaterial('craterRingMat', this.scene);
-    ringMat.diffuseColor = new BABYLON.Color3(0.4, 0.42, 0.52);
-
-    const outerRing = BABYLON.MeshBuilder.CreateTorus('craterRim', {
-      diameter: 180,
-      thickness: 25,
-      tessellation: 32
-    }, this.scene);
-    outerRing.position.y = 8;
-    outerRing.material = ringMat;
   }
 
   private buildAncientRuins(): void {
@@ -105,7 +244,7 @@ export class ShukaWorld {
 
     const glyphMat = new BABYLON.StandardMaterial('shukaGlyphMat', this.scene);
     glyphMat.diffuseColor = new BABYLON.Color3(0, 0, 0);
-    glyphMat.emissiveColor = new BABYLON.Color3(0.6, 0.1, 0.9); // Violet glyph glow
+    glyphMat.emissiveColor = new BABYLON.Color3(0.75, 0.2, 0.95); // Bright violet glyph glow
 
     // Central Monolith Pillar Array
     const pillarPositions = [
@@ -129,7 +268,7 @@ export class ShukaWorld {
         depth: 1.4
       }, this.scene);
       pillar.position = pos.clone();
-      pillar.position.y = height / 2;
+      pillar.position.y = height / 2 + 0.5;
       pillar.rotation.y = (idx * 0.4);
       pillar.material = ruinMat;
 
@@ -150,7 +289,7 @@ export class ShukaWorld {
       height: 1.5,
       tessellation: 8
     }, this.scene);
-    templeBase.position = new BABYLON.Vector3(-36, 0.75, -26);
+    templeBase.position = new BABYLON.Vector3(-36, 1.5, -26);
     templeBase.material = ruinMat;
   }
 
@@ -162,23 +301,23 @@ export class ShukaWorld {
 
     const crystalVioletMat = new BABYLON.StandardMaterial('crystalVioletMat', this.scene);
     crystalVioletMat.diffuseColor = new BABYLON.Color3(0.3, 0.05, 0.4);
-    crystalVioletMat.emissiveColor = new BABYLON.Color3(0.7, 0.15, 0.95);
+    crystalVioletMat.emissiveColor = new BABYLON.Color3(0.85, 0.2, 0.95);
     crystalVioletMat.alpha = 0.85;
 
-    // Create clusters of crystalline shards
+    // Create clusters of crystalline spires on core islands
     const clusterCenters = [
-      new BABYLON.Vector3(38, 0, 12),
-      new BABYLON.Vector3(-32, 0, 30),
-      new BABYLON.Vector3(26, 0, -34),
-      new BABYLON.Vector3(-18, 0, -15),
-      new BABYLON.Vector3(15, 0, 35)
+      new BABYLON.Vector3(38, 0.5, 12),
+      new BABYLON.Vector3(-32, 0.5, 30),
+      new BABYLON.Vector3(26, 0.5, -34),
+      new BABYLON.Vector3(-18, 0.5, -15),
+      new BABYLON.Vector3(15, 0.5, 35)
     ];
 
     clusterCenters.forEach((center, cIdx) => {
       const shardsCount = 6;
       for (let s = 0; s < shardsCount; s++) {
-        const height = 2.5 + Math.random() * 4.5;
-        const width = 0.5 + Math.random() * 0.6;
+        const height = 3.0 + Math.random() * 4.5;
+        const width = 0.6 + Math.random() * 0.6;
         const crystal = BABYLON.MeshBuilder.CreateCylinder(`crystal_${cIdx}_${s}`, {
           diameterTop: 0.05,
           diameterBottom: width,
@@ -190,7 +329,7 @@ export class ShukaWorld {
         const rad = 1.5 + Math.random() * 2.5;
         crystal.position = new BABYLON.Vector3(
           center.x + Math.cos(angle) * rad,
-          height / 2,
+          center.y + height / 2,
           center.z + Math.sin(angle) * rad
         );
         crystal.rotation.x = (Math.random() - 0.5) * 0.4;
@@ -201,28 +340,31 @@ export class ShukaWorld {
     });
   }
 
-  private buildFloatingIslands(): void {
+  private buildFloatingDebris(): void {
     const rockMat = new BABYLON.StandardMaterial('floatingRockMat', this.scene);
-    rockMat.diffuseColor = new BABYLON.Color3(0.09, 0.05, 0.15);
+    rockMat.diffuseColor = new BABYLON.Color3(0.35, 0.32, 0.45);
     rockMat.specularColor = new BABYLON.Color3(0.3, 0.2, 0.4);
 
+    const crystalGlowMat = new BABYLON.StandardMaterial('floatingCrystalGlow', this.scene);
+    crystalGlowMat.emissiveColor = new BABYLON.Color3(0.7, 0.3, 0.95);
+
     const islandPositions = [
-      new BABYLON.Vector3(0, 18, 25),
-      new BABYLON.Vector3(45, 14, 20),
-      new BABYLON.Vector3(-40, 16, 35),
-      new BABYLON.Vector3(30, 22, -40),
-      new BABYLON.Vector3(-45, 19, -30),
-      new BABYLON.Vector3(0, 25, -20),
+      new BABYLON.Vector3(0, 14, 25),
+      new BABYLON.Vector3(45, 12, 20),
+      new BABYLON.Vector3(-40, 15, 35),
+      new BABYLON.Vector3(30, 18, -40),
+      new BABYLON.Vector3(-45, 16, -30),
+      new BABYLON.Vector3(0, 20, -20),
     ];
 
     islandPositions.forEach((pos, idx) => {
-      // Create irregular floating rock / asteroid shape
+      // Create floating asteroid rocks with crystal shards
       const rock = BABYLON.MeshBuilder.CreatePolyhedron(`floatRock_${idx}`, {
         type: 1, // Dodecahedron
-        size: 3.5 + (idx % 3) * 1.5
+        size: 3.0 + (idx % 3) * 1.2
       }, this.scene);
       rock.position = pos.clone();
-      rock.material = rockMat;
+      rock.material = (idx % 2 === 0) ? rockMat : crystalGlowMat;
 
       this.floatingRocks.push(rock);
       this.floatingRockBaseY.push(pos.y);
@@ -232,7 +374,7 @@ export class ShukaWorld {
 
   private buildBioluminescentFlora(): void {
     const plantStemMat = new BABYLON.StandardMaterial('plantStemMat', this.scene);
-    plantStemMat.diffuseColor = new BABYLON.Color3(0.06, 0.04, 0.1);
+    plantStemMat.diffuseColor = new BABYLON.Color3(0.12, 0.08, 0.18);
 
     const sporeMat = new BABYLON.StandardMaterial('sporeGlowMat', this.scene);
     sporeMat.diffuseColor = new BABYLON.Color3(0, 0, 0);
@@ -266,21 +408,21 @@ export class ShukaWorld {
   private buildAncientPortal(): void {
     // Portal arch near Sector 5
     const archMat = new BABYLON.StandardMaterial('portalArchMat', this.scene);
-    archMat.diffuseColor = new BABYLON.Color3(0.1, 0.06, 0.15);
+    archMat.diffuseColor = new BABYLON.Color3(0.2, 0.15, 0.28);
 
     const ring = BABYLON.MeshBuilder.CreateTorus('portalRing', {
       diameter: 12,
       thickness: 1.2,
       tessellation: 24
     }, this.scene);
-    ring.position = new BABYLON.Vector3(-36, 6.5, -26);
+    ring.position = new BABYLON.Vector3(-36, 7.5, -26);
     ring.rotation.x = Math.PI / 2;
     ring.material = archMat;
 
     // Swirling energy vortex inside portal
     const vortexMat = new BABYLON.StandardMaterial('vortexMat', this.scene);
     vortexMat.diffuseColor = new BABYLON.Color3(0, 0, 0);
-    vortexMat.emissiveColor = new BABYLON.Color3(0.5, 0.1, 0.95);
+    vortexMat.emissiveColor = new BABYLON.Color3(0.65, 0.15, 0.95);
     vortexMat.alpha = 0.65;
 
     const vortex = BABYLON.MeshBuilder.CreateDisc('portalVortex', {
@@ -312,3 +454,4 @@ export class ShukaWorld {
     }
   }
 }
+

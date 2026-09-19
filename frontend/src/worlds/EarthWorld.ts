@@ -104,43 +104,161 @@ export class EarthWorld {
   }
 
   /**
-   * Builds the ruined futuristic Earth terrain and damaged structures
+   * Builds the Futuristic Solarpunk Sky Research Station consisting of individual
+   * 3D floating islands suspended high above the cloud layer with tapering undersides,
+   * anti-gravity engines, cyan energy conduits, glass domes, and sky bridges.
    */
   private buildRuinedEnvironment(): void {
-    // 1. Ruined industrial concrete/asphalt ground
-    const ground = BABYLON.MeshBuilder.CreateGround(
-      'earthGround',
-      { width: 140, height: 140, subdivisions: 16 },
-      this.scene
-    );
-    ground.position = EarthWorld.EARTH_OFFSET.clone();
+    const whiteDeckMat = new BABYLON.StandardMaterial('earthWhiteDeckMat', this.scene);
+    whiteDeckMat.diffuseColor = new BABYLON.Color3(0.85, 0.88, 0.92);
+    whiteDeckMat.specularColor = new BABYLON.Color3(0.4, 0.45, 0.5);
 
-    const groundMat = new BABYLON.StandardMaterial('earthGroundMat', this.scene);
-    groundMat.diffuseColor = new BABYLON.Color3(0.52, 0.55, 0.60);
-    groundMat.specularColor = new BABYLON.Color3(0.3, 0.3, 0.35);
-    groundMat.roughness = 0.6;
-    ground.material = groundMat;
-    ground.checkCollisions = true;
+    const metalUndersideMat = new BABYLON.StandardMaterial('earthUndersideMat', this.scene);
+    metalUndersideMat.diffuseColor = new BABYLON.Color3(0.2, 0.22, 0.26);
+    metalUndersideMat.specularColor = new BABYLON.Color3(0.3, 0.35, 0.4);
 
-    // 2. Concrete perimeter barrier walls
-    const wallMat = new BABYLON.StandardMaterial('earthWallMat', this.scene);
-    wallMat.diffuseColor = new BABYLON.Color3(0.18, 0.17, 0.16);
+    const cyanConduitMat = new BABYLON.StandardMaterial('earthCyanConduitMat', this.scene);
+    cyanConduitMat.diffuseColor = new BABYLON.Color3(0, 0, 0);
+    cyanConduitMat.emissiveColor = new BABYLON.Color3(0, 0.8, 0.95);
 
-    const perimeter = [
-      { x: 0, z: 68, w: 140, d: 4 },
-      { x: 0, z: -68, w: 140, d: 4 },
-      { x: 68, z: 0, w: 4, d: 140 },
-      { x: -68, z: 0, w: 4, d: 140 }
+    const glassDomeMat = new BABYLON.StandardMaterial('earthGlassDomeMat', this.scene);
+    glassDomeMat.diffuseColor = new BABYLON.Color3(0.4, 0.7, 0.9);
+    glassDomeMat.alpha = 0.45;
+    glassDomeMat.specularColor = new BABYLON.Color3(1, 1, 1);
+
+    const foliageMat = new BABYLON.StandardMaterial('earthHydroponicFoliageMat', this.scene);
+    foliageMat.diffuseColor = new BABYLON.Color3(0.15, 0.65, 0.25);
+
+    // 1. Central Sky Command Hub Island
+    const centralOffset = EarthWorld.EARTH_OFFSET.clone();
+    this.createAntiGravIsland('centralHub', centralOffset, 48, 48, 2.5, 18, whiteDeckMat, metalUndersideMat, cyanConduitMat);
+
+    // Central Glass Observation Dome
+    const mainDome = BABYLON.MeshBuilder.CreateSphere('mainDome', { diameter: 16, segments: 16, slice: 0.5 }, this.scene);
+    mainDome.position = centralOffset.clone().add(new BABYLON.Vector3(0, 1.25, 0));
+    mainDome.material = glassDomeMat;
+
+    // 4 Corner Glass Hydroponic Domes & Green Beds on Central Island
+    const domeOffsets = [
+      { x: -14, z: 14 },
+      { x: 14, z: 14 },
+      { x: -14, z: -14 },
+      { x: 14, z: -14 }
     ];
 
-    perimeter.forEach((p, idx) => {
-      const wall = BABYLON.MeshBuilder.CreateBox(`earthPerimeter_${idx}`, { width: p.w, depth: p.d, height: 8 }, this.scene);
-      wall.position = EarthWorld.EARTH_OFFSET.clone().add(new BABYLON.Vector3(p.x, 4, p.z));
-      wall.material = wallMat;
+    domeOffsets.forEach((d, idx) => {
+      const subDome = BABYLON.MeshBuilder.CreateSphere(`subDome_${idx}`, { diameter: 8, segments: 12, slice: 0.5 }, this.scene);
+      subDome.position = centralOffset.clone().add(new BABYLON.Vector3(d.x, 1.25, d.z));
+      subDome.material = glassDomeMat;
+
+      const gardenBed = BABYLON.MeshBuilder.CreateBox(`gardenBed_${idx}`, { width: 6, depth: 6, height: 0.6 }, this.scene);
+      gardenBed.position = centralOffset.clone().add(new BABYLON.Vector3(d.x, 1.3, d.z));
+      gardenBed.material = foliageMat;
     });
 
-    // 3. Damaged futuristic structures
+    // 2. Build 5 Major Surrounding Floating Sky Islands based on Core Locations
+    EarthWorld.CORE_LOCATIONS.forEach((loc, idx) => {
+      const islandPos = centralOffset.clone().add(loc);
+      this.createAntiGravIsland(`skyIsland_${idx}`, islandPos, 22, 22, 2, 12, whiteDeckMat, metalUndersideMat, cyanConduitMat);
+
+      // Connect each island to central hub with a Sky Conduit Bridge over open sky
+      this.buildSkyBridge(centralOffset, islandPos, whiteDeckMat, cyanConduitMat);
+    });
+
+    // 3. Floating Debris & Support Structural Decor
     this.buildDamagedStructures();
+  }
+
+  /**
+   * Creates a distinct 3D Anti-Gravity Floating Island with a playable deck top,
+   * tapering 3D metallic underside, structural support struts, and cyan anti-gravity engine tip.
+   */
+  private createAntiGravIsland(
+    name: string,
+    position: BABYLON.Vector3,
+    width: number,
+    depth: number,
+    deckHeight: number,
+    undersideDepth: number,
+    deckMat: BABYLON.Material,
+    undersideMat: BABYLON.Material,
+    cyanEngineMat: BABYLON.Material
+  ): BABYLON.Mesh {
+    const root = new BABYLON.TransformNode(`root_${name}`, this.scene);
+    root.position = position.clone();
+
+    // Top Playable Deck
+    const deck = BABYLON.MeshBuilder.CreateBox(`${name}_deck`, { width, depth, height: deckHeight }, this.scene);
+    deck.position = new BABYLON.Vector3(0, 0, 0);
+    deck.material = deckMat;
+    deck.checkCollisions = true;
+    deck.parent = root;
+
+    // Tapering 3D Structural Metallic Underside (Inverted Cone)
+    const underside = BABYLON.MeshBuilder.CreateCylinder(`${name}_underside`, {
+      diameterTop: Math.min(width, depth) * 0.9,
+      diameterBottom: 3.5,
+      height: undersideDepth,
+      tessellation: 8
+    }, this.scene);
+    underside.position = new BABYLON.Vector3(0, -(deckHeight / 2 + undersideDepth / 2), 0);
+    underside.material = undersideMat;
+    underside.parent = root;
+
+    // Cyan Anti-Gravity Engine Core at bottom tip
+    const engineCore = BABYLON.MeshBuilder.CreateSphere(`${name}_engineCore`, { diameter: 4.5 }, this.scene);
+    engineCore.position = new BABYLON.Vector3(0, -(deckHeight / 2 + undersideDepth), 0);
+    engineCore.material = cyanEngineMat;
+    engineCore.parent = root;
+
+    // Engine glow point light
+    const engineLight = new BABYLON.PointLight(`${name}_engineLight`, new BABYLON.Vector3(0, -1, 0), this.scene);
+    engineLight.diffuse = new BABYLON.Color3(0, 0.8, 1.0);
+    engineLight.intensity = 0.8;
+    engineLight.range = 15;
+    engineLight.parent = engineCore;
+
+    // 4 Structural Metallic Support Struts connecting engine tip to deck edges
+    const strutPositions = [
+      new BABYLON.Vector3(-width * 0.35, -deckHeight / 2, -depth * 0.35),
+      new BABYLON.Vector3(width * 0.35, -deckHeight / 2, -depth * 0.35),
+      new BABYLON.Vector3(-width * 0.35, -deckHeight / 2, depth * 0.35),
+      new BABYLON.Vector3(width * 0.35, -deckHeight / 2, depth * 0.35)
+    ];
+
+    strutPositions.forEach((start, i) => {
+      const end = engineCore.position.clone();
+      const dist = BABYLON.Vector3.Distance(start, end);
+      const strut = BABYLON.MeshBuilder.CreateCylinder(`${name}_strut_${i}`, { diameter: 0.8, height: dist }, this.scene);
+      strut.position = BABYLON.Vector3.Center(start, end);
+      strut.lookAt(end);
+      strut.rotation.x += Math.PI / 2;
+      strut.material = undersideMat;
+      strut.parent = root;
+    });
+
+    return deck;
+  }
+
+  /**
+   * Constructs a Sky Conduit Bridge over open space connecting two floating islands
+   */
+  private buildSkyBridge(from: BABYLON.Vector3, to: BABYLON.Vector3, deckMat: BABYLON.Material, cyanMat: BABYLON.Material): void {
+    const center = BABYLON.Vector3.Center(from, to);
+    const distance = BABYLON.Vector3.Distance(from, to) - 16;
+    if (distance <= 0) return;
+
+    const bridge = BABYLON.MeshBuilder.CreateBox('skyBridgeDeck', { width: 4, depth: distance, height: 0.8 }, this.scene);
+    bridge.position = center.clone();
+    bridge.lookAt(to);
+    bridge.material = deckMat;
+    bridge.checkCollisions = true;
+
+    // Cyan glowing conduit line along bridge center
+    const conduit = BABYLON.MeshBuilder.CreateBox('skyBridgeConduit', { width: 0.6, depth: distance, height: 0.3 }, this.scene);
+    conduit.position = center.clone().add(new BABYLON.Vector3(0, 0.5, 0));
+    conduit.lookAt(to);
+    conduit.material = cyanMat;
   }
 
   /**
