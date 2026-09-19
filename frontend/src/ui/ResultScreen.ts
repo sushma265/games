@@ -9,6 +9,7 @@ export interface ResultStats {
   missionDurationSeconds: number;
   abilitiesUsed?: number;
   reason?: string;
+  isDemoMode?: boolean;
 }
 
 export class ResultScreen {
@@ -131,10 +132,10 @@ export class ResultScreen {
           <!-- Actions -->
           <div class="flex flex-col sm:flex-row gap-3 pt-2">
             <button id="btn-result-rematch" class="flex-1 py-3.5 bg-sky-600 hover:bg-sky-700 text-white font-bold font-display text-xs uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-[0.99] cursor-pointer">
-              RETURN TO LOBBY (REMATCH)
+              ${stats.isDemoMode ? '[ PLAY AGAIN ]' : 'RETURN TO LOBBY (REMATCH)'}
             </button>
             <button id="btn-result-menu" class="flex-1 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold font-display text-xs uppercase tracking-wider rounded-xl border border-slate-300 transition-colors cursor-pointer">
-              MAIN MENU
+              ${stats.isDemoMode ? '[ MAIN MENU ]' : 'MAIN MENU'}
             </button>
           </div>
 

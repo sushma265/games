@@ -1,4 +1,5 @@
 import { AudioManager } from '../core/AudioManager';
+import { NotificationToast } from './NotificationToast';
 
 export interface GameSettings {
   sound: boolean;
@@ -143,18 +144,26 @@ export class SettingsUI {
             <div class="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
               <div>
                 <span class="font-bold text-slate-900 text-sm block">SHOW TUTORIAL</span>
-                <span class="text-[11px] text-slate-500">Objective hints during setup</span>
+                <span class="text-[11px] text-slate-500">Objective hints & onboarding</span>
               </div>
-              <button 
-                id="btn-toggle-tutorial" 
-                class="px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider border transition-colors shadow-sm cursor-pointer ${
-                  this.settings.showTutorial 
-                    ? 'bg-sky-600 border-sky-700 text-white' 
-                    : 'bg-slate-200 border-slate-300 text-slate-600'
-                }"
-              >
-                ${this.settings.showTutorial ? 'ON' : 'OFF'}
-              </button>
+              <div class="flex items-center gap-2">
+                <button 
+                  id="btn-reset-tutorial" 
+                  class="px-2.5 py-1.5 rounded-lg font-bold text-[11px] uppercase tracking-wider bg-slate-200 hover:bg-slate-300 text-slate-700 border border-slate-300 transition-colors cursor-pointer"
+                >
+                  RESET
+                </button>
+                <button 
+                  id="btn-toggle-tutorial" 
+                  class="px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider border transition-colors shadow-sm cursor-pointer ${
+                    this.settings.showTutorial 
+                      ? 'bg-sky-600 border-sky-700 text-white' 
+                      : 'bg-slate-200 border-slate-300 text-slate-600'
+                  }"
+                >
+                  ${this.settings.showTutorial ? 'ON' : 'OFF'}
+                </button>
+              </div>
             </div>
 
           </div>
@@ -176,6 +185,14 @@ export class SettingsUI {
   private attachHandlers(): void {
     this.container.querySelector('#btn-settings-close')?.addEventListener('click', () => this.onBackCallback());
     this.container.querySelector('#btn-settings-back')?.addEventListener('click', () => this.onBackCallback());
+
+    this.container.querySelector('#btn-reset-tutorial')?.addEventListener('click', () => {
+      try {
+        localStorage.removeItem('earthShukaTutorialSeen');
+      } catch {}
+      NotificationToast.show({ message: 'Tutorial reset! It will show on next match.', type: 'info' });
+      if (this.audioMgr) this.audioMgr.playClick();
+    });
 
     this.container.querySelector('#btn-toggle-sound')?.addEventListener('click', () => {
       this.settings.sound = !this.settings.sound;

@@ -12,6 +12,8 @@ export interface MainMenuOptions {
   onJoinRoom: (playerName: string, roomCode: string) => Promise<void>;
   onOpenHowToPlay: () => void;
   onOpenSettings: () => void;
+  onQuickDemo?: () => void;
+  onOpenGameInfo?: () => void;
 }
 
 export class MainMenu {
@@ -22,6 +24,8 @@ export class MainMenu {
   private onJoinRoomCb: (playerName: string, roomCode: string) => Promise<void>;
   private onOpenHowToPlayCb: () => void;
   private onOpenSettingsCb: () => void;
+  private onQuickDemoCb?: () => void;
+  private onOpenGameInfoCb?: () => void;
 
   private viewMode: MainMenuViewMode = 'MAIN';
   private storedName: string = '';
@@ -36,6 +40,8 @@ export class MainMenu {
     this.onJoinRoomCb = options.onJoinRoom;
     this.onOpenHowToPlayCb = options.onOpenHowToPlay;
     this.onOpenSettingsCb = options.onOpenSettings;
+    this.onQuickDemoCb = options.onQuickDemo;
+    this.onOpenGameInfoCb = options.onOpenGameInfo;
 
     this.loadPlayerName();
     this.render();
@@ -116,16 +122,22 @@ export class MainMenu {
             JOIN MISSION
           </button>
 
-          <button id="btn-menu-htp" class="w-full py-3 px-6 bg-white hover:bg-slate-50 text-slate-700 font-bold font-display text-xs tracking-wider uppercase rounded-xl border border-slate-200 transition-all duration-150 shadow-sm cursor-pointer">
-            HOW TO PLAY
+          <button id="btn-menu-demo" class="w-full py-3.5 px-6 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-black font-display text-xs tracking-widest uppercase rounded-xl shadow-md transition-all duration-150 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer">
+            <span>⚡</span> [ QUICK DEMO ]
           </button>
 
-          <button id="btn-menu-settings" class="w-full py-3 px-6 bg-white hover:bg-slate-50 text-slate-700 font-bold font-display text-xs tracking-wider uppercase rounded-xl border border-slate-200 transition-all duration-150 shadow-sm cursor-pointer">
-            SETTINGS
-          </button>
+          <div class="grid grid-cols-2 gap-2.5 pt-1">
+            <button id="btn-menu-htp" class="py-2.5 px-3 bg-white hover:bg-slate-50 text-slate-700 font-bold font-display text-xs tracking-wider uppercase rounded-xl border border-slate-200 transition-all duration-150 shadow-sm cursor-pointer truncate">
+              HOW TO PLAY
+            </button>
 
-          <button id="btn-menu-demo" class="w-full py-2.5 px-6 bg-slate-50 hover:bg-slate-100 text-sky-700 font-bold font-mono text-xs tracking-wider uppercase rounded-xl border border-sky-200 transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer">
-            <span>⚡</span> QUICK DEMO MODE
+            <button id="btn-menu-settings" class="py-2.5 px-3 bg-white hover:bg-slate-50 text-slate-700 font-bold font-display text-xs tracking-wider uppercase rounded-xl border border-slate-200 transition-all duration-150 shadow-sm cursor-pointer truncate">
+              SETTINGS
+            </button>
+          </div>
+
+          <button id="btn-menu-info" class="w-full py-2 px-4 bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold font-mono text-[11px] tracking-wider uppercase rounded-xl border border-slate-200 transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer">
+            <span>ℹ️</span> GAME INFO & TECH STACK
           </button>
         </div>
       `;
@@ -262,8 +274,17 @@ export class MainMenu {
 
       this.container.querySelector('#btn-menu-demo')?.addEventListener('click', () => {
         this.audioMgr.playClick();
-        if ((window as any).debugGame && (window as any).debugGame.startSingleplayer) {
+        if (this.onQuickDemoCb) {
+          this.onQuickDemoCb();
+        } else if ((window as any).debugGame && (window as any).debugGame.startSingleplayer) {
           (window as any).debugGame.startSingleplayer();
+        }
+      });
+
+      this.container.querySelector('#btn-menu-info')?.addEventListener('click', () => {
+        this.audioMgr.playClick();
+        if (this.onOpenGameInfoCb) {
+          this.onOpenGameInfoCb();
         }
       });
     } else {

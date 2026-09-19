@@ -27,6 +27,8 @@ export interface ScreenManagerOptions {
   networkMgr: NetworkManager;
   audioMgr: AudioManager;
   onStartSingleplayer?: () => void;
+  onQuickDemo?: () => void;
+  onOpenGameInfo?: () => void;
 }
 
 export class ScreenManager {
@@ -35,6 +37,8 @@ export class ScreenManager {
   private modalRoot: HTMLElement;
   private networkMgr: NetworkManager;
   private audioMgr: AudioManager;
+  private onQuickDemoCb?: () => void;
+  private onOpenGameInfoCb?: () => void;
 
   private currentScreenState: ScreenState = ScreenState.LOADING;
 
@@ -51,6 +55,8 @@ export class ScreenManager {
     this.modalRoot = options.modalRoot;
     this.networkMgr = options.networkMgr;
     this.audioMgr = options.audioMgr;
+    this.onQuickDemoCb = options.onQuickDemo;
+    this.onOpenGameInfoCb = options.onOpenGameInfo;
 
     this.init();
   }
@@ -175,6 +181,12 @@ export class ScreenManager {
       },
       onOpenSettings: () => {
         this.setScreenState(ScreenState.SETTINGS);
+      },
+      onQuickDemo: () => {
+        if (this.onQuickDemoCb) this.onQuickDemoCb();
+      },
+      onOpenGameInfo: () => {
+        if (this.onOpenGameInfoCb) this.onOpenGameInfoCb();
       }
     });
 

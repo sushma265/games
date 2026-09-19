@@ -17,6 +17,9 @@ import { AbilitySystem } from '../gameplay/AbilitySystem';
 import { ScreenManager, ScreenState } from '../ui/ScreenManager';
 import { ResultScreen } from '../ui/ResultScreen';
 import { GameplayTutorialOverlay } from '../ui/GameplayTutorialOverlay';
+import { GameAnnouncement } from '../ui/GameAnnouncement';
+import { OnboardingOverlay } from '../ui/OnboardingOverlay';
+import { GameInfoModal } from '../ui/GameInfoModal';
 
 export enum GameState {
   MENU = 'MENU',
@@ -95,6 +98,7 @@ export class GameManager {
   public localPlayerId: string | null = null;
   public isHost: boolean = false;
   public multiplayerMode: boolean = false;
+  public isDemoMode: boolean = false;
   public networkMgr: NetworkManager;
   public multiplayerMgr: MultiplayerManager;
 
@@ -221,7 +225,25 @@ export class GameManager {
       hudRoot,
       modalRoot,
       networkMgr: this.networkMgr,
-      audioMgr: this.audioMgr
+      audioMgr: this.audioMgr,
+      onQuickDemo: async () => {
+        this.isDemoMode = true;
+        this.temporaryHUD.isDemoMode = true;
+        const stored = localStorage.getItem('earth_shuka_player_name') || localStorage.getItem('playerName') || 'JUDGE DEMO';
+        const res = await this.networkMgr.createRoom(stored);
+        if (res.success) {
+          modalRoot.classList.remove('hidden');
+          new OnboardingOverlay(modalRoot, () => {
+            modalRoot.classList.add('hidden');
+          });
+        }
+      },
+      onOpenGameInfo: () => {
+        modalRoot.classList.remove('hidden');
+        new GameInfoModal(modalRoot, () => {
+          modalRoot.classList.add('hidden');
+        });
+      }
     });
 
     this.resultScreen = new ResultScreen(
@@ -531,6 +553,16 @@ export class GameManager {
 
     console.log(`[GameManager] HUMAN Shuka Core collected: ${this.humanCores} / ${this.MAX_CORES}`);
 
+    if (this.humanCores === 4) {
+      GameAnnouncement.show('FINAL CORE', 'One more Shuka Core to win the match!', 'success');
+    } else {
+      GameAnnouncement.show('SHUKA CORE ACQUIRED', `HUMAN: ${this.humanCores} / 5 CORES`, 'success');
+    }
+
+    if ((this.temporaryHUD as any)?.eventFeed) {
+      (this.temporaryHUD as any).eventFeed.add(`You collected Shuka Core #${this.humanCores}`, 'success');
+    }
+
     this.emitEvent('HUMAN_CORE_COLLECTED', {
       humanCores: this.humanCores,
       coreId,
@@ -551,6 +583,16 @@ export class GameManager {
 
     this.alienCores = Math.min(this.MAX_CORES, this.alienCores + 1);
     console.log(`[GameManager] ALIEN Earth Core registered: ${this.alienCores} / ${this.MAX_CORES}`);
+
+    if (this.alienCores === 4) {
+      GameAnnouncement.show('ALIEN ONE CORE FROM VICTORY', 'Defend remaining Earth Cores!', 'alien');
+    } else {
+      GameAnnouncement.show('EARTH CORE ACQUIRED', `ALIEN: ${this.alienCores} / 5 CORES`, 'alien');
+    }
+
+    if ((this.temporaryHUD as any)?.eventFeed) {
+      (this.temporaryHUD as any).eventFeed.add(`Alien collected Earth Core #${this.alienCores}`, 'alien');
+    }
 
     this.emitEvent('ALIEN_CORE_COLLECTED', {
       alienCores: this.alienCores,
@@ -684,7 +726,8 @@ export class GameManager {
         shukaCoresCollected: this.humanCores,
         earthCoresLost: this.alienCores,
         missionDurationSeconds: this.matchTime,
-        reason
+        reason,
+        isDemoMode: this.isDemoMode
       });
     }
   }
@@ -713,6 +756,10 @@ export class GameManager {
 
   public handleReturnToMainMenu(): void {
     this.state = GameState.MENU;
+    this.isDemoMode = false;
+    if (this.temporaryHUD) {
+      this.temporaryHUD.isDemoMode = false;
+    }
     this.humanCores = 0;
     this.alienCores = 0;
     this.matchTime = 0;

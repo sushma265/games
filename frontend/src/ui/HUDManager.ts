@@ -2,6 +2,7 @@ import { CoreController } from '../gameplay/CoreController';
 import { AlienAI, AlienState } from '../gameplay/AlienAI';
 import { AbilitySystem } from '../gameplay/AbilitySystem';
 import { SpecialistManager } from '../gameplay/SpecialistManager';
+import { GameEventFeed } from './GameEventFeed';
 
 export class HUDManager {
   private container: HTMLElement;
@@ -26,8 +27,18 @@ export class HUDManager {
   private reconStatusEl!: HTMLElement;
   private scanIndicatorEl!: HTMLElement;
 
+  // Phase 16 Additions
+  public eventFeed!: GameEventFeed;
+  private objectiveTextEl!: HTMLElement;
+  private demoBadgeEl!: HTMLElement;
+  private playerIdentityEl!: HTMLElement;
+  private alienExtractionBadgeEl!: HTMLElement;
+
   private notifications: { id: number; el: HTMLElement }[] = [];
   private nextNotifId: number = 1;
+  public isDemoMode: boolean = false;
+  public playerName: string = 'PLAYER';
+  public isOnline: boolean = true;
 
   constructor(
     container: HTMLElement,
@@ -53,6 +64,9 @@ export class HUDManager {
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
             <span class="text-xs font-mono text-cyan-400 font-bold tracking-widest">LIVE RACE PROTOCOL</span>
+            <span id="hud-demo-badge" class="hidden px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-mono font-bold tracking-wider">
+              DEMO MODE
+            </span>
           </div>
           <div class="text-lg font-black tracking-widest text-white glow-cyan">EARTH // SHUKA</div>
           <div id="hud-mission-timer" class="text-xs font-mono text-slate-300 tracking-wider">00:00</div>
@@ -94,12 +108,26 @@ export class HUDManager {
             </div>
           </div>
         </div>
+
+        <!-- Live Objective Banner -->
+        <div id="hud-objective-banner" class="mt-1 px-4 py-1 rounded-full bg-slate-950/80 border border-slate-700/80 backdrop-blur-md text-[11px] font-mono font-bold text-cyan-300 tracking-wider text-center shadow-lg">
+          MISSION OBJECTIVE: <span id="hud-objective-text" class="text-white font-bold">COLLECT 5 SHUKA CORES</span>
+        </div>
+      </div>
+
+      <!-- Contextual Alien Extraction Progress Banner -->
+      <div id="hud-alien-extraction-badge" class="fixed top-24 right-4 z-30 hidden px-3.5 py-2 rounded-xl bg-rose-950/90 border border-rose-500/60 backdrop-blur-md font-mono text-xs text-rose-200 shadow-xl animate-pulse">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+          <span id="alien-extraction-text" class="font-bold">ALIEN EXTRACTING: 0%</span>
+        </div>
       </div>
 
       <!-- Scan Target Waypoint HUD -->
       <div id="hud-scan-indicator" class="scan-indicator-hud hidden">
-        <span class="text-cyan-400">◎ SCAN:</span>
-        <span id="scan-distance-text" class="font-mono font-bold">-- m</span>
+        <span class="text-cyan-400 font-bold">SCAN TARGET ↓</span>
+        <span class="text-slate-200 font-mono font-bold">[ENERGY CORE]</span>
+        <span id="scan-distance-text" class="font-mono font-bold text-cyan-300">-- m</span>
       </div>
 
       <!-- Center Extraction Ring -->
@@ -133,8 +161,14 @@ export class HUDManager {
       <!-- Event Notification Toast Feed -->
       <div id="hud-notifications" class="hud-notifications"></div>
 
-      <!-- Bottom Left: Status & Specialists -->
-      <div class="hud-bottom-left">
+      <!-- Bottom Left: Status, Player Identity & Specialists -->
+      <div class="hud-bottom-left space-y-1.5">
+        <div id="hud-player-identity" class="px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700/80 backdrop-blur-md font-mono text-[11px] text-slate-200 flex items-center gap-2 shadow-md">
+          <span id="hud-network-dot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span>PLAYER: <strong id="hud-player-name" class="text-sky-300">PLAYER</strong></span>
+          <span id="hud-network-status" class="text-[9px] text-slate-400 uppercase">ONLINE</span>
+        </div>
+
         <div class="status-badge sci-fi-panel">
           <div class="flex flex-col">
             <span class="text-[10px] font-mono text-slate-400 uppercase">Specialist Crew</span>
@@ -184,6 +218,12 @@ export class HUDManager {
     this.notificationsEl = this.container.querySelector('#hud-notifications')!;
     this.reconStatusEl = this.container.querySelector('#recon-status-text')!;
     this.scanIndicatorEl = this.container.querySelector('#hud-scan-indicator')!;
+    this.objectiveTextEl = this.container.querySelector('#hud-objective-text')!;
+    this.demoBadgeEl = this.container.querySelector('#hud-demo-badge')!;
+    this.playerIdentityEl = this.container.querySelector('#hud-player-identity')!;
+    this.alienExtractionBadgeEl = this.container.querySelector('#hud-alien-extraction-badge')!;
+
+    this.eventFeed = new GameEventFeed(this.notificationsEl);
 
     for (let i = 0; i < 5; i++) {
       this.humanSegments.push(this.container.querySelector(`#human-progress-track [data-idx="${i}"]`)!);
@@ -265,21 +305,44 @@ export class HUDManager {
       }
     }
 
-    // 5. Specialist Badge
-    this.specialistsBadgeEl.textContent = `DEF: ${this.specialistMgr.earthDefense} // EXT: ${this.specialistMgr.shukaExtraction}`;
-
-    // 6. Tactical Recon Drone Telemetry
-    this.reconStatusEl.textContent = this.alienAI.telemetryText;
-
-    // 7. Scan Waypoint
-    if (this.coreCtrl.isScanActive && this.coreCtrl.scanTargetCore) {
-      this.scanIndicatorEl.classList.remove('hidden');
-      const distEl = this.scanIndicatorEl.querySelector('#scan-distance-text');
-      if (distEl) {
-        distEl.textContent = `${Math.round(this.coreCtrl.scanTargetDistance)}m`;
-      }
+    // 8. Phase 16: Demo Mode Badge
+    if (this.isDemoMode) {
+      this.demoBadgeEl.classList.remove('hidden');
     } else {
-      this.scanIndicatorEl.classList.add('hidden');
+      this.demoBadgeEl.classList.add('hidden');
+    }
+
+    // 9. Phase 16: Dynamic Live Objective Banner
+    if (hScore >= 4) {
+      this.objectiveTextEl.innerHTML = '<span class="text-amber-300 font-black tracking-widest">FINAL CORE — ONE MORE TO WIN!</span>';
+    } else if (aScore >= 4) {
+      this.objectiveTextEl.innerHTML = '<span class="text-rose-400 font-black tracking-widest">WARNING: ALIEN ONE CORE FROM VICTORY!</span>';
+    } else {
+      const needed = Math.max(1, 5 - hScore);
+      this.objectiveTextEl.textContent = `COLLECT ${needed} MORE SHUKA CORES`;
+    }
+
+    // 10. Phase 16: Contextual Alien Extraction Progress & Disruption Badge
+    const alienExtText = this.container.querySelector('#alien-extraction-text');
+    if (this.alienAI.state === AlienState.EXTRACTING) {
+      this.alienExtractionBadgeEl.classList.remove('hidden');
+      const pct = Math.floor((this.alienAI as any).extractionProgress ? (this.alienAI as any).extractionProgress * 100 : 50);
+      if (alienExtText) alienExtText.textContent = `ALIEN EXTRACTING: ${pct}%`;
+    } else if ((this.alienAI as any).isDisrupted) {
+      this.alienExtractionBadgeEl.classList.remove('hidden');
+      if (alienExtText) alienExtText.textContent = `EXTRACTION DISRUPTED!`;
+    } else {
+      this.alienExtractionBadgeEl.classList.add('hidden');
+    }
+
+    // 11. Phase 16: Player Identity & Socket Status
+    const nameEl = this.container.querySelector('#hud-player-name');
+    const netStatusEl = this.container.querySelector('#hud-network-status');
+    const netDotEl = this.container.querySelector('#hud-network-dot');
+    if (nameEl) nameEl.textContent = this.playerName.toUpperCase();
+    if (netStatusEl) netStatusEl.textContent = this.isOnline ? 'ONLINE' : 'RECONNECTING...';
+    if (netDotEl) {
+      netDotEl.className = `w-2 h-2 rounded-full ${this.isOnline ? 'bg-emerald-400' : 'bg-amber-400 animate-ping'}`;
     }
   }
 
