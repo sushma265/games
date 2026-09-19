@@ -64,6 +64,10 @@ export class EarthWorld {
   public earthDroneCam!: BABYLON.ArcRotateCamera;
   public isReconActive: boolean = false;
 
+  // Human Specialist Units & Sky Drones modeled on Earth World
+  public humanSpecialistNodes: BABYLON.TransformNode[] = [];
+  public humanDrones: { root: BABYLON.TransformNode; baseY: number; speed: number; phase: number }[] = [];
+
   // Atmosphere lighting
   private earthSunLight!: BABYLON.DirectionalLight;
 
@@ -77,6 +81,7 @@ export class EarthWorld {
     this.buildRuinedEnvironment();
     this.buildEarthCores();
     this.buildAlienMesh();
+    this.buildHumanSpecialistUnits();
     this.buildReconCamera();
   }
 
@@ -448,6 +453,135 @@ export class EarthWorld {
   }
 
   /**
+   * Models 3D Human Defense Specialists and Sky Defense Drones stationed across Earth World
+   */
+  private buildHumanSpecialistUnits(): void {
+    const armorMat = new BABYLON.StandardMaterial('humanArmorMat', this.scene);
+    armorMat.diffuseColor = new BABYLON.Color3(0.85, 0.9, 0.95);
+    armorMat.specularColor = new BABYLON.Color3(0.6, 0.7, 0.8);
+
+    const suitUnderMat = new BABYLON.StandardMaterial('humanSuitUnderMat', this.scene);
+    suitUnderMat.diffuseColor = new BABYLON.Color3(0.12, 0.16, 0.22);
+
+    const cyanVisorMat = new BABYLON.StandardMaterial('humanCyanVisorMat', this.scene);
+    cyanVisorMat.diffuseColor = new BABYLON.Color3(0, 0, 0);
+    cyanVisorMat.emissiveColor = new BABYLON.Color3(0, 0.85, 1.0);
+
+    const specialistConfigs = [
+      { name: 'DEFENSE OPERATIVE Alpha', pos: new BABYLON.Vector3(-6, 1.25, 4), rotY: 0.4 },
+      { name: 'TACTICAL SPECIALIST Beta', pos: new BABYLON.Vector3(6, 1.25, -4), rotY: -1.2 },
+      { name: 'SHIELD ENGINEER Gamma', pos: new BABYLON.Vector3(18, 1.25, -20), rotY: 2.1 },
+      { name: 'EMP COMMANDER Delta', pos: new BABYLON.Vector3(-20, 1.25, 16), rotY: -0.8 }
+    ];
+
+    specialistConfigs.forEach((config, idx) => {
+      const root = new BABYLON.TransformNode(`humanSpecialist_${idx}`, this.scene);
+      root.position = EarthWorld.EARTH_OFFSET.clone().add(config.pos);
+      root.rotation.y = config.rotY;
+
+      // Boots & Legs
+      const legs = BABYLON.MeshBuilder.CreateBox(`humanLegs_${idx}`, { width: 0.55, depth: 0.4, height: 0.9 }, this.scene);
+      legs.position.y = 0.45;
+      legs.material = suitUnderMat;
+      legs.parent = root;
+
+      // Torso & Cybernetic Chest Plate
+      const torso = BABYLON.MeshBuilder.CreateBox(`humanTorso_${idx}`, { width: 0.75, depth: 0.5, height: 1.0 }, this.scene);
+      torso.position.y = 1.35;
+      torso.material = armorMat;
+      torso.parent = root;
+
+      // Chest Reactor Light Core
+      const chestCore = BABYLON.MeshBuilder.CreateCylinder(`humanChestCore_${idx}`, { diameter: 0.25, height: 0.52 }, this.scene);
+      chestCore.position = new BABYLON.Vector3(0, 1.45, 0.25);
+      chestCore.rotation.x = Math.PI / 2;
+      chestCore.material = cyanVisorMat;
+      chestCore.parent = root;
+
+      // Arms holding Diagnostic Terminal
+      const leftArm = BABYLON.MeshBuilder.CreateBox(`humanLArm_${idx}`, { width: 0.22, depth: 0.22, height: 0.8 }, this.scene);
+      leftArm.position = new BABYLON.Vector3(-0.48, 1.35, 0.15);
+      leftArm.rotation.x = -Math.PI / 4;
+      leftArm.material = armorMat;
+      leftArm.parent = root;
+
+      const rightArm = BABYLON.MeshBuilder.CreateBox(`humanRArm_${idx}`, { width: 0.22, depth: 0.22, height: 0.8 }, this.scene);
+      rightArm.position = new BABYLON.Vector3(0.48, 1.35, 0.15);
+      rightArm.rotation.x = -Math.PI / 4;
+      rightArm.material = armorMat;
+      rightArm.parent = root;
+
+      // Diagnostic Tablet
+      const pad = BABYLON.MeshBuilder.CreateBox(`humanPad_${idx}`, { width: 0.6, depth: 0.4, height: 0.08 }, this.scene);
+      pad.position = new BABYLON.Vector3(0, 1.25, 0.45);
+      pad.rotation.x = Math.PI / 6;
+      pad.material = cyanVisorMat;
+      pad.parent = root;
+
+      // Helmet & Visor
+      const helmet = BABYLON.MeshBuilder.CreateSphere(`humanHelmet_${idx}`, { diameter: 0.55 }, this.scene);
+      helmet.position.y = 2.05;
+      helmet.material = armorMat;
+      helmet.parent = root;
+
+      const visor = BABYLON.MeshBuilder.CreateBox(`humanVisor_${idx}`, { width: 0.42, depth: 0.2, height: 0.14 }, this.scene);
+      visor.position = new BABYLON.Vector3(0, 2.08, 0.22);
+      visor.material = cyanVisorMat;
+      visor.parent = root;
+
+      // 3D Billboard Nameplate above Human Operative
+      const nameplate = BABYLON.MeshBuilder.CreatePlane(`humanTag_${idx}`, { width: 3.0, height: 0.7 }, this.scene);
+      nameplate.position.y = 2.8;
+      nameplate.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+      nameplate.parent = root;
+
+      const tex = new BABYLON.DynamicTexture(`humanTagTex_${idx}`, { width: 512, height: 128 }, this.scene, false);
+      tex.hasAlpha = true;
+      tex.drawText(config.name.toUpperCase(), null, 75, 'bold 32px monospace', '#00e5ff', '#001a2cdd', true);
+
+      const tagMat = new BABYLON.StandardMaterial(`humanTagMat_${idx}`, this.scene);
+      tagMat.diffuseTexture = tex;
+      tagMat.emissiveColor = new BABYLON.Color3(1, 1, 1);
+      tagMat.backFaceCulling = false;
+      nameplate.material = tagMat;
+
+      this.humanSpecialistNodes.push(root);
+    });
+
+    // Build Sky Defense Drones hovering around Earth islands
+    const dronePositions = [
+      new BABYLON.Vector3(0, 6, 0),
+      new BABYLON.Vector3(22, 7, 10),
+      new BABYLON.Vector3(-20, 6.5, -15)
+    ];
+
+    dronePositions.forEach((pos, idx) => {
+      const droneRoot = new BABYLON.TransformNode(`earthDrone_${idx}`, this.scene);
+      droneRoot.position = EarthWorld.EARTH_OFFSET.clone().add(pos);
+
+      const body = BABYLON.MeshBuilder.CreateCylinder(`droneBody_${idx}`, { diameter: 1.4, height: 0.4 }, this.scene);
+      body.material = armorMat;
+      body.parent = droneRoot;
+
+      const eye = BABYLON.MeshBuilder.CreateSphere(`droneEye_${idx}`, { diameter: 0.4 }, this.scene);
+      eye.position.z = 0.6;
+      eye.material = cyanVisorMat;
+      eye.parent = droneRoot;
+
+      const ring = BABYLON.MeshBuilder.CreateTorus(`droneRing_${idx}`, { diameter: 2.2, thickness: 0.08 }, this.scene);
+      ring.material = suitUnderMat;
+      ring.parent = droneRoot;
+
+      this.humanDrones.push({
+        root: droneRoot,
+        baseY: pos.y,
+        speed: 1.2 + idx * 0.4,
+        phase: idx * 2.0
+      });
+    });
+  }
+
+  /**
    * Builds the tactical Earth Drone Recon Camera for operatives to observe the Alien race
    */
   private buildReconCamera(): void {
@@ -560,6 +694,18 @@ export class EarthWorld {
           core.glowLight.intensity = 1.0 + Math.sin(core.pulseTimer * 3) * 0.3;
         }
       }
+    });
+
+    // 2.5 Animate Human Defense Specialists & Sky Drones on Earth
+    const nowSec = Date.now() * 0.001;
+    this.humanSpecialistNodes.forEach((node, idx) => {
+      node.position.y = EarthWorld.EARTH_OFFSET.y + 1.25 + Math.sin(nowSec * 2.2 + idx) * 0.04;
+      node.rotation.y += Math.sin(nowSec * 0.5 + idx) * 0.003;
+    });
+
+    this.humanDrones.forEach((drone) => {
+      drone.root.position.y = EarthWorld.EARTH_OFFSET.y + drone.baseY + Math.sin(nowSec * drone.speed + drone.phase) * 0.55;
+      drone.root.rotation.y += deltaSeconds * 1.2;
     });
 
     // 3. Render Alien AI laser extraction beam if actively extracting

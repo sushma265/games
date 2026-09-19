@@ -27,6 +27,10 @@ export class ShukaWorld {
     new BABYLON.Vector3(-36, 2.2, -26)   // Sector 5: Ancient Portal Ruins
   ];
 
+  // Alien Harvester/Sentinel units modeled on Shuka World
+  public alienSentinelNodes: BABYLON.TransformNode[] = [];
+  public alienRingsList: BABYLON.Mesh[][] = [];
+
   constructor(scene: BABYLON.Scene) {
     this.scene = scene;
     this.setupAtmosphere();
@@ -36,6 +40,7 @@ export class ShukaWorld {
     this.buildFloatingDebris();
     this.buildBioluminescentFlora();
     this.buildAncientPortal();
+    this.buildAlienHarvesterEntities();
   }
 
   private setupAtmosphere(): void {
@@ -435,6 +440,88 @@ export class ShukaWorld {
     this.portalRing = ring;
   }
 
+  /**
+   * Models 3D Alien Harvester / Sentinel entities stationed across Shuka World
+   */
+  private buildAlienHarvesterEntities(): void {
+    const alienChassisMat = new BABYLON.StandardMaterial('shukaAlienChassis', this.scene);
+    alienChassisMat.diffuseColor = new BABYLON.Color3(0.12, 0.06, 0.2);
+    alienChassisMat.specularColor = new BABYLON.Color3(0.5, 0.2, 0.7);
+
+    const alienMagentaOpticMat = new BABYLON.StandardMaterial('shukaAlienOptic', this.scene);
+    alienMagentaOpticMat.diffuseColor = new BABYLON.Color3(0, 0, 0);
+    alienMagentaOpticMat.emissiveColor = new BABYLON.Color3(0.95, 0.15, 0.85);
+
+    const alienRuneRingMat = new BABYLON.StandardMaterial('shukaAlienRings', this.scene);
+    alienRuneRingMat.diffuseColor = new BABYLON.Color3(0.3, 0.1, 0.4);
+    alienRuneRingMat.emissiveColor = new BABYLON.Color3(0.7, 0.2, 0.9);
+
+    const sentinelConfigs = [
+      { name: 'ALIEN SENTINEL Xeno-1', pos: new BABYLON.Vector3(0, 3.2, 18) },
+      { name: 'ALIEN HARVESTER Crystal-2', pos: new BABYLON.Vector3(34, 3.5, 8) },
+      { name: 'ALIEN COLLECTOR Void-3', pos: new BABYLON.Vector3(-28, 3.2, 26) }
+    ];
+
+    sentinelConfigs.forEach((config, idx) => {
+      const root = new BABYLON.TransformNode(`shukaAlienSentinel_${idx}`, this.scene);
+      root.position = config.pos.clone();
+
+      // Crystalline Octahedron Body
+      const body = BABYLON.MeshBuilder.CreatePolyhedron(`sentinelBody_${idx}`, { type: 1, size: 1.1 }, this.scene);
+      body.position.y = 0.5;
+      body.material = alienChassisMat;
+      body.parent = root;
+
+      // Central glowing magenta optic eye
+      const eye = BABYLON.MeshBuilder.CreateSphere(`sentinelEye_${idx}`, { diameter: 0.55 }, this.scene);
+      eye.position = new BABYLON.Vector3(0, 0.5, 0.7);
+      eye.material = alienMagentaOpticMat;
+      eye.parent = root;
+
+      // Orbiting levitation energy rings
+      const ring1 = BABYLON.MeshBuilder.CreateTorus(`sentinelRing1_${idx}`, { diameter: 2.2, thickness: 0.08 }, this.scene);
+      ring1.position.y = 0.5;
+      ring1.rotation.x = Math.PI / 4;
+      ring1.material = alienRuneRingMat;
+      ring1.parent = root;
+
+      const ring2 = BABYLON.MeshBuilder.CreateTorus(`sentinelRing2_${idx}`, { diameter: 2.6, thickness: 0.07 }, this.scene);
+      ring2.position.y = 0.5;
+      ring2.rotation.z = Math.PI / 3;
+      ring2.material = alienRuneRingMat;
+      ring2.parent = root;
+
+      // Extraction Mechanical Appendages (3 floating claws)
+      for (let c = 0; c < 3; c++) {
+        const angle = (c / 3) * Math.PI * 2;
+        const claw = BABYLON.MeshBuilder.CreateCylinder(`sentinelClaw_${idx}_${c}`, { diameterTop: 0.06, diameterBottom: 0.2, height: 1.4 }, this.scene);
+        claw.position = new BABYLON.Vector3(Math.cos(angle) * 0.7, -0.4, Math.sin(angle) * 0.7);
+        claw.rotation.z = (Math.random() - 0.5) * 0.3;
+        claw.material = alienChassisMat;
+        claw.parent = root;
+      }
+
+      // Overhead 3D Dynamic Nameplate
+      const nameplate = BABYLON.MeshBuilder.CreatePlane(`sentinelTag_${idx}`, { width: 3.2, height: 0.7 }, this.scene);
+      nameplate.position.y = 2.2;
+      nameplate.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+      nameplate.parent = root;
+
+      const tex = new BABYLON.DynamicTexture(`sentinelTagTex_${idx}`, { width: 512, height: 128 }, this.scene, false);
+      tex.hasAlpha = true;
+      tex.drawText(config.name.toUpperCase(), null, 75, 'bold 30px monospace', '#ff00ea', '#260020dd', true);
+
+      const tagMat = new BABYLON.StandardMaterial(`sentinelTagMat_${idx}`, this.scene);
+      tagMat.diffuseTexture = tex;
+      tagMat.emissiveColor = new BABYLON.Color3(1, 1, 1);
+      tagMat.backFaceCulling = false;
+      nameplate.material = tagMat;
+
+      this.alienSentinelNodes.push(root);
+      this.alienRingsList.push([ring1, ring2]);
+    });
+  }
+
   public update(deltaSeconds: number): void {
     this.time += deltaSeconds;
 
@@ -452,6 +539,17 @@ export class ShukaWorld {
     if (this.portalRing) {
       this.portalRing.rotation.z += deltaSeconds * 0.1;
     }
+
+    // Animate Alien AI Harvesters / Sentinels on Shuka World
+    this.alienSentinelNodes.forEach((node, idx) => {
+      node.position.y = 3.2 + Math.sin(this.time * 2.0 + idx) * 0.45;
+      node.rotation.y += deltaSeconds * 0.6;
+    });
+
+    this.alienRingsList.forEach((rings) => {
+      if (rings[0]) rings[0].rotation.y += deltaSeconds * 2.2;
+      if (rings[1]) rings[1].rotation.x += deltaSeconds * 1.8;
+    });
   }
 }
 
